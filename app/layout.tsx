@@ -91,7 +91,7 @@ export default function RootLayout({
                   <span className="text-white font-semibold">UKPBJ Kemnaker</span>
                 </div>
                 <p className="text-slate-300 text-sm">
-                  © 2025 Sistem Penilaian Penyedia UKPBJ Kemnaker. Dibuat untuk memudahkan PPK dalam memberikan penilaian.
+                  © 2025 Sistem Penilaian Penyedia UKPBJ Kemnaker.
                 </p>
               </div>
             </div>
