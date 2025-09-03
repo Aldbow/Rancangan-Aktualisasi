@@ -48,9 +48,9 @@ export default function RootLayout({
                       priority
                     />
                   </div>
-                  <h1 className="hidden md:block text-lg lg:text-2xl font-bold text-white">
+                  {/* <h1 className="hidden md:block text-lg lg:text-2xl font-bold text-white">
                     Sistem Penilaian Penyedia UKPBJ Kemnaker
-                  </h1>
+                  </h1> */}
                 </div>
                 <nav className="flex items-center space-x-1 sm:space-x-2">
                   <a href="/" className="text-blue-100 hover:text-white hover:bg-blue-600 px-2 sm:px-3 lg:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25">
@@ -58,7 +58,7 @@ export default function RootLayout({
                     <span className="sm:hidden">Home</span>
                   </a>
                   <a href="/penilaian" className="text-blue-100 hover:text-white hover:bg-blue-600 px-2 sm:px-3 lg:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25">
-                    <span className="hidden sm:inline">Beri Penilaian</span>
+                    <span className="hidden sm:inline">Penilaian</span>
                     <span className="sm:hidden">Nilai</span>
                   </a>
                   <a href="/laporan" className="text-blue-100 hover:text-white hover:bg-blue-600 px-2 sm:px-3 lg:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25">

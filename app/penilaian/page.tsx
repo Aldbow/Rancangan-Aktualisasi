@@ -186,7 +186,7 @@ export default function PenilaianPage() {
             <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent">
-            Beri Penilaian
+            Penilaian Penyedia
           </h1>
         </div>
         <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto px-2">
