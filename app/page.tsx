@@ -166,39 +166,39 @@ export default function HomePage() {
 
 
       {/* Features */}
-      <Card className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-700 border-0 shadow-xl animate-in fade-in duration-700">
+      <Card className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-700 border-0 shadow-xl">
         <CardContent className="p-4 sm:p-6 lg:p-10">
-          <div className="text-center mb-6 lg:mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700 px-2 sm:px-4">
+          <div className="text-center mb-6 lg:mb-10 px-2 sm:px-4">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-700 to-blue-600 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent mb-3 lg:mb-4">Fitur Utama</h2>
             <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base lg:text-lg">Solusi lengkap untuk penilaian penyedia yang efisien dan terintegrasi</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            <div className="text-center group animate-in slide-in-from-left-8 fade-in duration-700 hover:scale-105 transition-all duration-500 ease-out">
-              <div className="p-4 lg:p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-2xl w-fit mx-auto mb-4 lg:mb-6 shadow-lg group-hover:shadow-2xl group-hover:shadow-blue-500/25 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                <Search className="h-8 w-8 lg:h-10 lg:w-10 text-white group-hover:scale-110 transition-transform duration-300" />
+            <div className="text-center group hover:scale-105 transition-all duration-500 ease-out">
+              <div className="p-4 lg:p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-2xl w-fit mx-auto mb-4 lg:mb-6 shadow-lg hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-110 hover:-translate-y-1">
+                <Search className="h-8 w-8 lg:h-10 lg:w-10 text-white hover:scale-110 transition-transform duration-300" />
               </div>
-              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">Pencarian Cepat</h3>
-              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors duration-300">
+              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-300">Pencarian Cepat</h3>
+              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 leading-relaxed hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-300">
                 Cari penyedia dengan mudah menggunakan fitur pencarian yang canggih dan responsif
               </p>
             </div>
             
-            <div className="text-center group animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 hover:scale-105 transition-all duration-500 ease-out">
-              <div className="p-4 lg:p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 rounded-2xl w-fit mx-auto mb-4 lg:mb-6 shadow-lg group-hover:shadow-2xl group-hover:shadow-emerald-500/25 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                <Users className="h-8 w-8 lg:h-10 lg:w-10 text-white group-hover:scale-110 transition-transform duration-300" />
+            <div className="text-center group hover:scale-105 transition-all duration-500 ease-out">
+              <div className="p-4 lg:p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 rounded-2xl w-fit mx-auto mb-4 lg:mb-6 shadow-lg hover:shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 hover:scale-110 hover:-translate-y-1">
+                <Users className="h-8 w-8 lg:h-10 lg:w-10 text-white hover:scale-110 transition-transform duration-300" />
               </div>
-              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300">Multi PPK</h3>
-              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors duration-300">
+              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors duration-300">Multi PPK</h3>
+              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 leading-relaxed hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-300">
                 Beberapa PPK dapat memberikan penilaian untuk satu penyedia secara bersamaan
               </p>
             </div>
             
-            <div className="text-center group animate-in slide-in-from-right-8 fade-in duration-700 delay-500 hover:scale-105 transition-all duration-500 ease-out">
-              <div className="p-4 lg:p-6 bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 rounded-2xl w-fit mx-auto mb-4 lg:mb-6 shadow-lg group-hover:shadow-2xl group-hover:shadow-purple-500/25 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1">
-                <BarChart3 className="h-8 w-8 lg:h-10 lg:w-10 text-white group-hover:scale-110 transition-transform duration-300" />
+            <div className="text-center group hover:scale-105 transition-all duration-500 ease-out">
+              <div className="p-4 lg:p-6 bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 rounded-2xl w-fit mx-auto mb-4 lg:mb-6 shadow-lg hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 hover:scale-110 hover:-translate-y-1">
+                <BarChart3 className="h-8 w-8 lg:h-10 lg:w-10 text-white hover:scale-110 transition-transform duration-300" />
               </div>
-              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">Laporan Real-time</h3>
-              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors duration-300">
+              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-300">Laporan Real-time</h3>
+              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 leading-relaxed hover:text-slate-700 dark:hover:text-slate-200 transition-colors duration-300">
                 Data tersinkronisasi secara real-time dengan Google Spreadsheet untuk akurasi maksimal
               </p>
             </div>
