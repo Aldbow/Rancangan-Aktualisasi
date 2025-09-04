@@ -190,7 +190,7 @@ export default function PenilaianPage() {
           </h1>
         </div>
         <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto px-2">
-          Berikan penilaian terhadap penyedia barang/jasa berdasarkan kriteria UKPBJ Kemnaker
+          Berikan penilaian terhadap penyedia barang/jasa berdasarkan kriteria LKPP
         </p>
       </div>
 
