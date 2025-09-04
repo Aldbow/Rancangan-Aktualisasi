@@ -30,11 +30,11 @@ export interface Penilaian {
   idPenyedia: string;
   namaPPK: string;
   tanggalPenilaian: string;
-  kualitasBarangJasa: number;
-  ketepatanWaktuPelaksanaan: number;
-  kesesuaianSpesifikasi: number;
-  pelayananPurnaJual: number;
-  profesionalisme: number;
+  kualitasKuantitasBarangJasa: number;
+  biaya: number;
+  waktu: number;
+  layanan: number;
+  penilaianAkhir: string;
   skorTotal: number;
   keterangan: string;
 }
@@ -222,7 +222,7 @@ class GoogleSheetsService {
     try {
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: process.env.GOOGLE_SHEET_ID,
-        range: 'Penilaian!A2:K', // Mulai dari baris 2 (skip header) - removed email column
+        range: 'Penilaian!A2:K', // Mulai dari baris 2 (skip header)
       });
 
       const rows = response.data.values || [];
@@ -231,11 +231,11 @@ class GoogleSheetsService {
         idPenyedia: row[1] || '',
         namaPPK: row[2] || '',
         tanggalPenilaian: row[3] || '',
-        kualitasBarangJasa: parseFloat(row[4]) || 0,
-        ketepatanWaktuPelaksanaan: parseFloat(row[5]) || 0,
-        kesesuaianSpesifikasi: parseFloat(row[6]) || 0,
-        pelayananPurnaJual: parseFloat(row[7]) || 0,
-        profesionalisme: parseFloat(row[8]) || 0,
+        kualitasKuantitasBarangJasa: parseFloat(row[4]) || 0,
+        biaya: parseFloat(row[5]) || 0,
+        waktu: parseFloat(row[6]) || 0,
+        layanan: parseFloat(row[7]) || 0,
+        penilaianAkhir: row[8] || '',
         skorTotal: parseFloat(row[9]) || 0,
         keterangan: row[10] || '',
       }));
@@ -246,27 +246,43 @@ class GoogleSheetsService {
   }
 
   // Menambah penilaian baru
-  async addPenilaian(penilaian: Omit<Penilaian, 'id' | 'skorTotal'>): Promise<void> {
+  async addPenilaian(penilaian: Omit<Penilaian, 'id' | 'skorTotal' | 'penilaianAkhir'>): Promise<void> {
     try {
       const id = `PNL${Date.now()}`;
+      
+      // Hitung skor total berdasarkan bobot LKPP:
+      // Kualitas dan kuantitas: 30%, Biaya: 20%, Waktu: 30%, Layanan: 20%
       const skorTotal = (
-        penilaian.kualitasBarangJasa +
-        penilaian.ketepatanWaktuPelaksanaan +
-        penilaian.kesesuaianSpesifikasi +
-        penilaian.pelayananPurnaJual +
-        penilaian.profesionalisme
-      ) / 5;
+        (penilaian.kualitasKuantitasBarangJasa * 0.3) +
+        (penilaian.biaya * 0.2) +
+        (penilaian.waktu * 0.3) +
+        (penilaian.layanan * 0.2)
+      );
+
+      // Tentukan penilaian akhir berdasarkan skor total
+      let penilaianAkhir: string;
+      if (skorTotal === 0) {
+        penilaianAkhir = 'Buruk';
+      } else if (skorTotal >= 1 && skorTotal < 2) {
+        penilaianAkhir = 'Cukup';
+      } else if (skorTotal >= 2 && skorTotal < 3) {
+        penilaianAkhir = 'Baik';
+      } else if (skorTotal === 3) {
+        penilaianAkhir = 'Sangat Baik';
+      } else {
+        penilaianAkhir = 'Cukup'; // fallback
+      }
 
       const values = [[
         id,
         penilaian.idPenyedia,
         penilaian.namaPPK,
         penilaian.tanggalPenilaian,
-        penilaian.kualitasBarangJasa,
-        penilaian.ketepatanWaktuPelaksanaan,
-        penilaian.kesesuaianSpesifikasi,
-        penilaian.pelayananPurnaJual,
-        penilaian.profesionalisme,
+        penilaian.kualitasKuantitasBarangJasa,
+        penilaian.biaya,
+        penilaian.waktu,
+        penilaian.layanan,
+        penilaianAkhir,
         skorTotal,
         penilaian.keterangan
       ]];
@@ -306,8 +322,8 @@ class GoogleSheetsService {
       // Header untuk sheet Penilaian
       const penilaianHeaders = [
         'ID Penilaian', 'ID Penyedia', 'Nama PPK', 'Tanggal Penilaian',
-        'Kualitas Barang/Jasa', 'Ketepatan Waktu', 'Kesesuaian Spesifikasi',
-        'Pelayanan Purna Jual', 'Profesionalisme', 'Skor Total', 'Keterangan'
+        'Kualitas dan KuantitasBarang/Jasa', 'Biaya', 'Waktu',
+        'Layanan', 'Penilaian Akhir', 'Skor Total', 'Keterangan'
       ];
 
       // Cek apakah header sudah ada, jika belum tambahkan

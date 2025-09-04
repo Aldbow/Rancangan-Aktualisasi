@@ -42,50 +42,66 @@ export default function PenilaianPage() {
   
   // Form data untuk penilaian
   const [formData, setFormData] = useState({
-    kualitasBarangJasa: 1,
-    ketepatanWaktuPelaksanaan: 1,
-    kesesuaianSpesifikasi: 1,
-    pelayananPurnaJual: 1,
-    profesionalisme: 1,
+    kualitasKuantitasBarangJasa: 1,
+    biaya: 1,
+    waktu: 1,
+    layanan: 1,
     keterangan: ''
   })
 
   // Kriteria penilaian sesuai LKPP
   const kriteriaPenilaian = [
     {
-      key: 'kualitasBarangJasa',
-      label: 'Kualitas Barang/Jasa',
-      description: 'Penilaian terhadap kualitas barang/jasa yang diberikan'
+      key: 'kualitasKuantitasBarangJasa',
+      label: 'Kualitas dan Kuantitas Pekerjaan',
+      description: 'Penilaian terhadap kualitas dan kuantitas barang/jasa yang diserahkan',
+      bobot: '30%',
+      kriteria: {
+        1: 'Cukup - Kualitas dan kuantitas pekerjaan memenuhi standar minimum',
+        2: 'Baik - Kualitas dan kuantitas pekerjaan sesuai dengan spesifikasi',
+        3: 'Sangat Baik - Kualitas dan kuantitas pekerjaan melebihi ekspektasi'
+      }
     },
     {
-      key: 'ketepatanWaktuPelaksanaan',
-      label: 'Ketepatan Waktu Pelaksanaan',
-      description: 'Penilaian terhadap ketepatan waktu dalam pelaksanaan pekerjaan'
+      key: 'biaya',
+      label: 'Biaya',
+      description: 'Penilaian terhadap efisiensi dan kewajaran biaya yang dikeluarkan',
+      bobot: '20%',
+      kriteria: {
+        1: 'Cukup - Biaya sesuai dengan kontrak namun kurang efisien',
+        2: 'Baik - Biaya efisien dan sesuai dengan nilai kontrak',
+        3: 'Sangat Baik - Biaya sangat efisien dengan hasil maksimal'
+      }
     },
     {
-      key: 'kesesuaianSpesifikasi',
-      label: 'Kesesuaian Spesifikasi',
-      description: 'Penilaian terhadap kesesuaian dengan spesifikasi yang diminta'
+      key: 'waktu',
+      label: 'Waktu',
+      description: 'Penilaian terhadap ketepatan waktu penyelesaian pekerjaan',
+      bobot: '30%',
+      kriteria: {
+        1: 'Cukup - Pekerjaan selesai tepat waktu dengan sedikit keterlambatan',
+        2: 'Baik - Pekerjaan selesai tepat waktu sesuai jadwal',
+        3: 'Sangat Baik - Pekerjaan selesai lebih cepat dari jadwal'
+      }
     },
     {
-      key: 'pelayananPurnaJual',
-      label: 'Pelayanan Purna Jual',
-      description: 'Penilaian terhadap pelayanan setelah penyerahan barang/jasa'
-    },
-    {
-      key: 'profesionalisme',
-      label: 'Profesionalisme',
-      description: 'Penilaian terhadap sikap profesional dalam bekerja'
+      key: 'layanan',
+      label: 'Layanan',
+      description: 'Penilaian terhadap kualitas layanan dan responsivitas penyedia',
+      bobot: '20%',
+      kriteria: {
+        1: 'Cukup - Layanan memadai namun kurang responsif',
+        2: 'Baik - Layanan baik dan responsif terhadap kebutuhan',
+        3: 'Sangat Baik - Layanan excellent dengan respon sangat cepat'
+      }
     }
   ]
 
-  // Skala penilaian
+  // Skala penilaian sesuai LKPP (1-3)
   const skalaPenilaian = [
-    { value: 1, label: 'Sangat Buruk', color: 'text-red-600' },
-    { value: 2, label: 'Buruk', color: 'text-orange-600' },
-    { value: 3, label: 'Cukup', color: 'text-yellow-600' },
-    { value: 4, label: 'Baik', color: 'text-blue-600' },
-    { value: 5, label: 'Sangat Baik', color: 'text-green-600' }
+    { value: 1, label: 'Cukup', color: 'text-yellow-600' },
+    { value: 2, label: 'Baik', color: 'text-blue-600' },
+    { value: 3, label: 'Sangat Baik', color: 'text-green-600' }
   ]
 
   // Load PPK options on component mount
@@ -170,11 +186,10 @@ export default function PenilaianPage() {
     setSearchQuery('')
     setPenyediaList([])
     setFormData({
-      kualitasBarangJasa: 1,
-      ketepatanWaktuPelaksanaan: 1,
-      kesesuaianSpesifikasi: 1,
-      pelayananPurnaJual: 1,
-      profesionalisme: 1,
+      kualitasKuantitasBarangJasa: 1,
+      biaya: 1,
+      waktu: 1,
+      layanan: 1,
       keterangan: ''
     })
   }
@@ -217,16 +232,25 @@ export default function PenilaianPage() {
     }))
   }
 
-  // Calculate average score
-  const calculateAverageScore = () => {
-    const scores = [
-      formData.kualitasBarangJasa,
-      formData.ketepatanWaktuPelaksanaan,
-      formData.kesesuaianSpesifikasi,
-      formData.pelayananPurnaJual,
-      formData.profesionalisme
-    ]
-    return (scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(1)
+  // Calculate weighted score based on LKPP formula
+  const calculateWeightedScore = () => {
+    const weightedScore = (
+      (formData.kualitasKuantitasBarangJasa * 0.3) +
+      (formData.biaya * 0.2) +
+      (formData.waktu * 0.3) +
+      (formData.layanan * 0.2)
+    )
+    return weightedScore.toFixed(2)
+  }
+
+  // Get final evaluation based on weighted score
+  const getFinalEvaluation = () => {
+    const score = parseFloat(calculateWeightedScore())
+    if (score === 0) return 'Buruk'
+    if (score >= 1 && score < 2) return 'Cukup'
+    if (score >= 2 && score < 3) return 'Baik'
+    if (score === 3) return 'Sangat Baik'
+    return 'Cukup' // fallback
   }
   
   // Check if form can be submitted
@@ -245,11 +269,10 @@ export default function PenilaianPage() {
         idPenyedia: selectedPenyedia!.id,
         namaPPK: authenticatedPPK!.nama,
         tanggalPenilaian: new Date().toISOString().split('T')[0],
-        kualitasBarangJasa: formData.kualitasBarangJasa,
-        ketepatanWaktuPelaksanaan: formData.ketepatanWaktuPelaksanaan,
-        kesesuaianSpesifikasi: formData.kesesuaianSpesifikasi,
-        pelayananPurnaJual: formData.pelayananPurnaJual,
-        profesionalisme: formData.profesionalisme,
+        kualitasKuantitasBarangJasa: formData.kualitasKuantitasBarangJasa,
+        biaya: formData.biaya,
+        waktu: formData.waktu,
+        layanan: formData.layanan,
         keterangan: formData.keterangan
       }
 
@@ -266,11 +289,10 @@ export default function PenilaianPage() {
         // Reset form
         setSelectedPenyedia(null)
         setFormData({
-          kualitasBarangJasa: 1,
-          ketepatanWaktuPelaksanaan: 1,
-          kesesuaianSpesifikasi: 1,
-          pelayananPurnaJual: 1,
-          profesionalisme: 1,
+          kualitasKuantitasBarangJasa: 1,
+          biaya: 1,
+          waktu: 1,
+          layanan: 1,
           keterangan: ''
         })
         setSearchQuery('')
@@ -576,27 +598,34 @@ export default function PenilaianPage() {
               <span>Berikan Penilaian</span>
             </CardTitle>
             <CardDescription>
-              Berikan skor 1-5 untuk setiap kriteria penilaian
+              Berikan skor 1-3 untuk setiap kriteria penilaian sesuai standar LKPP
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 lg:space-y-6">
             {kriteriaPenilaian.map((criteria) => (
-              <div key={criteria.key} className="space-y-3">
+              <div key={criteria.key} className="space-y-4 p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
                 <div>
-                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {criteria.label}
-                  </Label>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      {criteria.label}
+                    </Label>
+                    <Badge variant="outline" className="text-xs">
+                      Bobot: {criteria.bobot}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
                     {criteria.description}
                   </p>
                 </div>
-                <div className="flex items-center space-x-2">
+                
+                {/* Rating buttons */}
+                <div className="flex items-center space-x-2 mb-3">
                   {skalaPenilaian.map((skala) => (
                     <button
                       key={skala.value}
                       type="button"
                       onClick={() => handleInputChange(criteria.key, skala.value)}
-                      className={`px-3 py-2 rounded-lg border-2 font-medium text-sm transition-all duration-300 hover:scale-110 hover:shadow-lg ${
+                      className={`px-4 py-2 rounded-lg border-2 font-medium text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg ${
                         formData[criteria.key as keyof typeof formData] === skala.value
                           ? 'bg-blue-500 border-blue-500 text-white shadow-lg'
                           : 'bg-white dark:bg-slate-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-blue-300 dark:hover:border-blue-500'
@@ -611,6 +640,25 @@ export default function PenilaianPage() {
                     }`}>
                       {skalaPenilaian.find(s => s.value === formData[criteria.key as keyof typeof formData])?.label || 'Belum dipilih'}
                     </span>
+                  </div>
+                </div>
+
+                {/* Criteria description */}
+                <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                  <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-2">Kriteria Penilaian:</p>
+                  <div className="space-y-1">
+                    {Object.entries(criteria.kriteria).map(([score, desc]) => (
+                      <div key={score} className="flex items-start space-x-2">
+                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+                          parseInt(score) === 1 ? 'bg-yellow-100 text-yellow-700' :
+                          parseInt(score) === 2 ? 'bg-blue-100 text-blue-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {score}
+                        </span>
+                        <span className="text-xs text-gray-600 dark:text-gray-300">{desc}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -629,14 +677,37 @@ export default function PenilaianPage() {
               />
             </div>
 
-            {/* Average Score Display */}
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-2">Rata-rata Skor</h3>
-                <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                  {calculateAverageScore()}
+            {/* Weighted Score Display */}
+            <div className="mt-6 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+              <div className="text-center space-y-4">
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Hasil Penilaian</h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="text-center">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mb-1">Skor Total (Berbobot)</p>
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                      {calculateWeightedScore()}
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mb-1">Penilaian Akhir</p>
+                    <div className={`text-2xl font-bold ${
+                      getFinalEvaluation() === 'Sangat Baik' ? 'text-green-600' :
+                      getFinalEvaluation() === 'Baik' ? 'text-blue-600' :
+                      getFinalEvaluation() === 'Cukup' ? 'text-yellow-600' :
+                      'text-red-600'
+                    }`}>
+                      {getFinalEvaluation()}
+                    </div>
+                  </div>
                 </div>
-                <Progress value={parseFloat(calculateAverageScore()) * 20} className="w-full max-w-xs mx-auto" />
+                
+                <Progress value={(parseFloat(calculateWeightedScore()) / 3) * 100} className="w-full max-w-md mx-auto" />
+                
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                  Formula: (Kualitas×30%) + (Biaya×20%) + (Waktu×30%) + (Layanan×20%)
+                </div>
               </div>
             </div>
 
