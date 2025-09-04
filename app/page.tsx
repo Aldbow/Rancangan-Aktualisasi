@@ -6,6 +6,7 @@ import { Building2, FileText, BarChart3, Users, Star, Search } from 'lucide-reac
 import { Card, CardContent } from '@/components/ui/card'
 import { useDashboardStats } from '@/lib/use-api-cache'
 import { StatCard } from '@/components/optimized/stat-card'
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 interface DashboardStats {
   totalPenyedia: number
