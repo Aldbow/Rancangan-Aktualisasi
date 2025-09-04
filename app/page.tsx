@@ -70,6 +70,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8 p-6">
+      <SpeedInsights />
       {/* Hero Section */}
       <div className="text-center space-y-6 lg:space-y-8 mb-12 lg:mb-16 px-2 sm:px-4">
         <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
