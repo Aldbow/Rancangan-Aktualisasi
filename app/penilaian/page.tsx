@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Building2, Star, Send, CheckCircle, Award, TrendingUp, FileText } from 'lucide-react'
+import { Search, Building2, Star, Send, CheckCircle, Award, TrendingUp, FileText, Lock, User, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,13 +11,32 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Penyedia, PPK } from '@/lib/google-sheets'
-import { PPKSelector } from '@/components/ui/ppk-selector'
+import { SearchableSelect } from '@/components/ui/searchable-select'
+
+interface PPKOptions {
+  eselonI: { value: string; label: string }[]
+  satuanKerja: { value: string; label: string }[]
+}
 
 export default function PenilaianPage() {
+  // PPK Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authenticatedPPK, setAuthenticatedPPK] = useState<PPK | null>(null)
+  const [authForm, setAuthForm] = useState({ 
+    nama: '', 
+    nip: '', 
+    eselonI: '', 
+    satuanKerja: '' 
+  })
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const [ppkOptions, setPpkOptions] = useState<PPKOptions>({ eselonI: [], satuanKerja: [] })
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false)
+
+  // Evaluation State
   const [searchQuery, setSearchQuery] = useState('')
   const [penyediaList, setPenyediaList] = useState<Penyedia[]>([])
   const [selectedPenyedia, setSelectedPenyedia] = useState<Penyedia | null>(null)
-  const [selectedPPK, setSelectedPPK] = useState<PPK | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
@@ -68,6 +87,97 @@ export default function PenilaianPage() {
     { value: 4, label: 'Baik', color: 'text-blue-600' },
     { value: 5, label: 'Sangat Baik', color: 'text-green-600' }
   ]
+
+  // Load PPK options on component mount
+  useEffect(() => {
+    const loadPPKOptions = async () => {
+      setIsLoadingOptions(true)
+      try {
+        const response = await fetch('/api/penilaian/ppk-options')
+        if (response.ok) {
+          const data = await response.json()
+          setPpkOptions(data)
+        }
+      } catch (error) {
+        console.error('Error loading PPK options:', error)
+      } finally {
+        setIsLoadingOptions(false)
+      }
+    }
+
+    loadPPKOptions()
+  }, [])
+
+  // PPK Authentication function
+  const authenticatePPK = async () => {
+    if (!authForm.nama.trim() || !authForm.nip.trim() || !authForm.eselonI.trim() || !authForm.satuanKerja.trim()) {
+      setAuthError('Semua field harus diisi (Nama, NIP, Eselon I, dan Satuan Kerja)')
+      return
+    }
+
+    setIsAuthenticating(true)
+    setAuthError('')
+
+    try {
+      const response = await fetch('/api/penilaian/validate-ppk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nama: authForm.nama.trim(),
+          nip: authForm.nip.trim(),
+          eselonI: authForm.eselonI.trim(),
+          satuanKerja: authForm.satuanKerja.trim()
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setIsAuthenticated(true)
+        setAuthenticatedPPK(data.ppk)
+        setAuthError('')
+      } else {
+        setAuthError(data.error || 'Validasi gagal')
+      }
+    } catch (error) {
+      console.error('Error authenticating PPK:', error)
+      setAuthError('Terjadi kesalahan saat validasi. Silakan coba lagi.')
+    } finally {
+      setIsAuthenticating(false)
+    }
+  }
+
+  // Handle auth form input change
+  const handleAuthInputChange = (field: string, value: string) => {
+    setAuthForm(prev => ({
+      ...prev,
+      [field]: value
+    }))
+    // Clear error when user starts typing
+    if (authError) {
+      setAuthError('')
+    }
+  }
+
+  // Logout function
+  const logout = () => {
+    setIsAuthenticated(false)
+    setAuthenticatedPPK(null)
+    setAuthForm({ nama: '', nip: '', eselonI: '', satuanKerja: '' })
+    setSelectedPenyedia(null)
+    setSearchQuery('')
+    setPenyediaList([])
+    setFormData({
+      kualitasBarangJasa: 1,
+      ketepatanWaktuPelaksanaan: 1,
+      kesesuaianSpesifikasi: 1,
+      pelayananPurnaJual: 1,
+      profesionalisme: 1,
+      keterangan: ''
+    })
+  }
 
   // Fetch penyedia berdasarkan search
   const searchPenyedia = async (query: string) => {
@@ -120,7 +230,7 @@ export default function PenilaianPage() {
   }
   
   // Check if form can be submitted
-  const canSubmit = selectedPenyedia && selectedPPK
+  const canSubmit = selectedPenyedia && authenticatedPPK
 
   // Submit penilaian
   const submitPenilaian = async () => {
@@ -132,8 +242,8 @@ export default function PenilaianPage() {
     setIsSubmitting(true)
     try {
       const penilaianData = {
-        idPenyedia: selectedPenyedia.id,
-        namaPPK: selectedPPK.nama,
+        idPenyedia: selectedPenyedia!.id,
+        namaPPK: authenticatedPPK!.nama,
         tanggalPenilaian: new Date().toISOString().split('T')[0],
         kualitasBarangJasa: formData.kualitasBarangJasa,
         ketepatanWaktuPelaksanaan: formData.ketepatanWaktuPelaksanaan,
@@ -155,7 +265,6 @@ export default function PenilaianPage() {
         alert('Penilaian berhasil disimpan!')
         // Reset form
         setSelectedPenyedia(null)
-        setSelectedPPK(null)
         setFormData({
           kualitasBarangJasa: 1,
           ketepatanWaktuPelaksanaan: 1,
@@ -177,9 +286,143 @@ export default function PenilaianPage() {
     }
   }
 
+  // If not authenticated, show PPK authentication form
+  if (!isAuthenticated) {
+    return (
+      <div className="space-y-6 lg:space-y-8 p-2 sm:p-4 lg:p-6">
+        {/* Header */}
+        <div className="text-center space-y-3 lg:space-y-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+              <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent">
+              Validasi PPK
+            </h1>
+          </div>
+          <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto px-2">
+            Masukkan nama lengkap dan NIP Anda untuk mengakses sistem penilaian penyedia
+          </p>
+        </div>
+
+        {/* PPK Authentication Form */}
+        <div className="max-w-md mx-auto">
+          <Card className="border-2 border-dashed border-blue-200 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-500">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
+                <Lock className="h-5 w-5 text-blue-600" />
+                <span>Autentikasi PPK</span>
+              </CardTitle>
+              <CardDescription>
+                Silakan masukkan nama lengkap dan NIP sesuai dengan data PPK yang terdaftar
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="nama" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Nama Lengkap *
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    id="nama"
+                    type="text"
+                    placeholder="Masukkan nama lengkap Anda"
+                    value={authForm.nama}
+                    onChange={(e) => handleAuthInputChange('nama', e.target.value)}
+                    className="pl-10"
+                    disabled={isAuthenticating}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="nip" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  NIP *
+                </Label>
+                <div className="relative">
+                  <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    id="nip"
+                    type="text"
+                    placeholder="Masukkan NIP Anda"
+                    value={authForm.nip}
+                    onChange={(e) => handleAuthInputChange('nip', e.target.value)}
+                    className="pl-10"
+                    disabled={isAuthenticating}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Eselon I *
+                </Label>
+                <SearchableSelect
+                  options={ppkOptions.eselonI}
+                  value={authForm.eselonI}
+                  onValueChange={(value) => handleAuthInputChange('eselonI', value)}
+                  placeholder="Pilih Eselon I..."
+                  searchPlaceholder="Cari Eselon I..."
+                  disabled={isAuthenticating || isLoadingOptions}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Satuan Kerja *
+                </Label>
+                <SearchableSelect
+                  options={ppkOptions.satuanKerja}
+                  value={authForm.satuanKerja}
+                  onValueChange={(value) => handleAuthInputChange('satuanKerja', value)}
+                  placeholder="Pilih Satuan Kerja..."
+                  searchPlaceholder="Cari Satuan Kerja..."
+                  disabled={isAuthenticating || isLoadingOptions}
+                />
+              </div>
+
+              {isLoadingOptions && (
+                <div className="flex items-center justify-center py-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-sm text-muted-foreground">Memuat data...</span>
+                </div>
+              )}
+
+              {authError && (
+                <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+                  <p className="text-sm text-red-600 dark:text-red-400">{authError}</p>
+                </div>
+              )}
+
+              <Button
+                onClick={authenticatePPK}
+                disabled={isAuthenticating || !authForm.nama.trim() || !authForm.nip.trim() || !authForm.eselonI.trim() || !authForm.satuanKerja.trim() || isLoadingOptions}
+                className="w-full"
+              >
+                {isAuthenticating ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Memvalidasi...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <Shield className="h-4 w-4" />
+                    <span>Validasi PPK</span>
+                  </div>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  // If authenticated, show the evaluation form
   return (
     <div className="space-y-6 lg:space-y-8 p-2 sm:p-4 lg:p-6">
-      {/* Header */}
+      {/* Header with PPK Info */}
       <div className="text-center space-y-3 lg:space-y-4">
         <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-3">
           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
@@ -193,6 +436,46 @@ export default function PenilaianPage() {
           Berikan penilaian terhadap penyedia barang/jasa berdasarkan kriteria LKPP
         </p>
       </div>
+
+      {/* PPK Info Card */}
+      <Card className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 border-green-200 dark:border-green-700">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <span>PPK Terautentikasi</span>
+            </CardTitle>
+            <Button
+              onClick={logout}
+              variant="outline"
+              size="sm"
+              className="text-red-600 border-red-300 hover:bg-red-50"
+            >
+              Keluar
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div>
+              <span className="text-slate-600 dark:text-slate-300">Nama: </span>
+              <span className="font-medium text-slate-800 dark:text-slate-100">{authenticatedPPK?.nama}</span>
+            </div>
+            <div>
+              <span className="text-slate-600 dark:text-slate-300">NIP: </span>
+              <span className="font-medium text-slate-800 dark:text-slate-100">{authenticatedPPK?.nip}</span>
+            </div>
+            <div>
+              <span className="text-slate-600 dark:text-slate-300">Satuan Kerja: </span>
+              <span className="font-medium text-slate-800 dark:text-slate-100">{authenticatedPPK?.satuanKerja}</span>
+            </div>
+            <div>
+              <span className="text-slate-600 dark:text-slate-300">Eselon I: </span>
+              <span className="font-medium text-slate-800 dark:text-slate-100">{authenticatedPPK?.eselonI}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Search Penyedia */}
       <Card className="border-2 border-dashed border-blue-200 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-500 hover:scale-[1.01]">
@@ -284,63 +567,12 @@ export default function PenilaianPage() {
         </CardContent>
       </Card>
 
-      {/* PPK Selection */}
-      {selectedPenyedia && (
-        <Card className="border-2 border-dashed border-green-200 hover:border-green-300 hover:shadow-xl hover:shadow-green-500/10 transition-all duration-500 hover:scale-[1.01]">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
-              <div className="flex items-center justify-center w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-green-100 text-green-600 font-bold text-xs lg:text-sm">3</div>
-              <span>Pilih PPK</span>
-            </CardTitle>
-            <CardDescription>
-              Pilih PPK yang memberikan penilaian dari daftar PPK yang terdaftar
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 lg:space-y-4">
-            <div>
-              <label className="block text-xs lg:text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                PPK *
-              </label>
-              <PPKSelector
-                selectedPPK={selectedPPK}
-                onSelectPPK={setSelectedPPK}
-                placeholder="Cari dan pilih PPK..."
-                className="w-full"
-              />
-            </div>
-            {selectedPPK && (
-              <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg border border-green-200 dark:border-green-700">
-                <h4 className="font-semibold text-slate-800 dark:text-slate-100 mb-2">PPK Terpilih:</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-slate-600 dark:text-slate-300">Nama: </span>
-                    <span className="font-medium text-slate-800 dark:text-slate-100">{selectedPPK.nama}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-600 dark:text-slate-300">NIP: </span>
-                    <span className="font-medium text-slate-800 dark:text-slate-100">{selectedPPK.nip}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-600 dark:text-slate-300">Satuan Kerja: </span>
-                    <span className="font-medium text-slate-800 dark:text-slate-100">{selectedPPK.satuanKerja}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-600 dark:text-slate-300">Eselon I: </span>
-                    <span className="font-medium text-slate-800 dark:text-slate-100">{selectedPPK.eselonI}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
       {/* Rating Form */}
-      {selectedPenyedia && selectedPPK && (
+      {selectedPenyedia && (
         <Card className="border-2 border-dashed border-purple-200 hover:border-purple-300 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-500 hover:scale-[1.01]">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2 text-base lg:text-lg">
-              <div className="flex items-center justify-center w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-purple-100 text-purple-600 font-bold text-xs lg:text-sm">4</div>
+              <div className="flex items-center justify-center w-6 h-6 lg:w-8 lg:h-8 rounded-full bg-purple-100 text-purple-600 font-bold text-xs lg:text-sm">3</div>
               <span>Berikan Penilaian</span>
             </CardTitle>
             <CardDescription>
