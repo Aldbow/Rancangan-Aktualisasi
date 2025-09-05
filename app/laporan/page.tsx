@@ -21,6 +21,7 @@ interface PenyediaWithRating extends Penyedia {
   totalPenilaian: number
   rataRataSkor: number
   penilaianTerbaru: string
+  penilaianAkhir?: string
 }
 
 export default function LaporanPage() {
@@ -62,12 +63,16 @@ export default function LaporanPage() {
           const penilaianTerbaru = totalPenilaian > 0
             ? penilaianPenyedia.sort((a, b) => new Date(b.tanggalPenilaian).getTime() - new Date(a.tanggalPenilaian).getTime())[0].tanggalPenilaian
             : '-'
+          const penilaianAkhir = totalPenilaian > 0
+            ? penilaianPenyedia.sort((a, b) => new Date(b.tanggalPenilaian).getTime() - new Date(a.tanggalPenilaian).getTime())[0].penilaianAkhir
+            : undefined
 
           return {
             ...p,
             totalPenilaian,
             rataRataSkor,
-            penilaianTerbaru
+            penilaianTerbaru,
+            penilaianAkhir
           }
         })
 
@@ -82,11 +87,22 @@ export default function LaporanPage() {
     }
   }
 
-  // Filter data based on search
-  const filteredData = penyediaData.filter(penyedia =>
-    penyedia.namaPerusahaan.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    penyedia.npwp.includes(searchQuery)
-  )
+  // Filter data based on search and status
+  const filteredData = penyediaData.filter(penyedia => {
+    const matchesSearch = penyedia.namaPerusahaan.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      penyedia.npwp.includes(searchQuery)
+    
+    if (!matchesSearch) return false
+    
+    // Apply status filter based on LKPP scale (1-3)
+    if (filterStatus === 'all') return true
+    if (filterStatus === 'excellent') return penyedia.rataRataSkor === 3
+    if (filterStatus === 'good') return penyedia.rataRataSkor >= 2 && penyedia.rataRataSkor < 3
+    if (filterStatus === 'average') return penyedia.rataRataSkor >= 1 && penyedia.rataRataSkor < 2
+    if (filterStatus === 'poor') return penyedia.rataRataSkor === 0
+    
+    return true
+  })
 
   // Pagination calculations
   const totalItems = filteredData.length
@@ -116,26 +132,56 @@ export default function LaporanPage() {
   const totalPenyedia = penyediaData.length
   const totalPenilaian = penilaianData.length
   const totalPPK = ppkData.length // Get PPK count from PPK sheet
-  const rataRataKeseluruhan = penilaianData.length > 0
-    ? (penilaianData.reduce((sum, p) => sum + p.skorTotal, 0) / penilaianData.length).toFixed(1)
-    : '0'
+  
+  // Map 1-3 evaluation score to 5-star display
+  const mapScoreToStars = (score: number) => {
+    if (score === 0) return 0
+    if (score >= 1 && score < 2) return 2 // Cukup = 2 stars
+    if (score >= 2 && score < 3) return 4 // Baik = 4 stars
+    if (score === 3) return 5 // Sangat Baik = 5 stars
+    return 1 // fallback
+  }
+  
+  // Calculate star distribution (1-5 stars)
+  const calculateStarDistribution = () => {
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    const totalWithRatings = penyediaData.filter(p => p.totalPenilaian > 0).length
+    
+    penyediaData.forEach(penyedia => {
+      if (penyedia.totalPenilaian > 0) {
+        const stars = mapScoreToStars(penyedia.rataRataSkor)
+        if (stars >= 1 && stars <= 5) {
+          distribution[stars as keyof typeof distribution]++
+        }
+      }
+    })
+    
+    return { distribution, totalWithRatings }
+  }
+  
+  const { distribution: starDistribution, totalWithRatings } = calculateStarDistribution()
 
-  // Get rating color
+  // Get rating color based on LKPP scale (1-3)
   const getRatingColor = (rating: number) => {
-    if (rating >= 4.5) return 'text-green-600 bg-green-100'
-    if (rating >= 3.5) return 'text-blue-600 bg-blue-100'
-    if (rating >= 2.5) return 'text-yellow-600 bg-yellow-100'
-    if (rating >= 1.5) return 'text-orange-600 bg-orange-100'
+    if (rating >= 2.5) return 'text-green-600 bg-green-100'
+    if (rating >= 2.0) return 'text-blue-600 bg-blue-100'
+    if (rating >= 1.0) return 'text-yellow-600 bg-yellow-100'
     return 'text-red-600 bg-red-100'
   }
 
   const getRatingText = (rating: number) => {
-    if (rating >= 4.5) return 'Sangat Baik'
-    if (rating >= 3.5) return 'Baik'
-    if (rating >= 2.5) return 'Cukup'
-    if (rating >= 1.5) return 'Buruk'
-    return 'Sangat Buruk'
+    if (rating === 3) return 'Sangat Baik'
+    if (rating >= 2 && rating < 3) return 'Baik'
+    if (rating >= 1 && rating < 2) return 'Cukup'
+    if (rating === 0) return 'Buruk'
+    return 'Cukup' // fallback
   }
+
+  // Get final evaluation text from penilaian data
+  const getFinalEvaluationText = (penilaianAkhir: string) => {
+    return penilaianAkhir || 'Belum Dinilai'
+  }
+
 
   // Prepare export data
   const prepareExportData = () => {
@@ -147,6 +193,7 @@ export default function LaporanPage() {
       'Total Penilaian': penyedia.totalPenilaian,
       'Rata-rata Skor': penyedia.rataRataSkor.toFixed(1),
       'Rating': getRatingText(penyedia.rataRataSkor),
+      'Penilaian Akhir': getFinalEvaluationText(penyedia.penilaianAkhir || ''),
       'Penilaian Terbaru': penyedia.penilaianTerbaru !== '-' 
         ? new Date(penyedia.penilaianTerbaru).toLocaleDateString('id-ID')
         : 'Belum ada'
@@ -240,7 +287,7 @@ export default function LaporanPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         <Card className="border-l-4 border-l-blue-500 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 group">
           <CardContent className="p-4 lg:p-6">
             <div className="flex items-center justify-between">
@@ -283,21 +330,51 @@ export default function LaporanPage() {
           </CardContent>
         </Card>
         
-        <Card className="border-l-4 border-l-yellow-500 hover:shadow-2xl hover:shadow-yellow-500/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1 group">
-          <CardContent className="p-4 lg:p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Rata-rata Skor</p>
-                <p className="text-3xl font-bold text-yellow-600">{rataRataKeseluruhan}/5</p>
-                <Progress value={parseFloat(rataRataKeseluruhan) * 20} className="mt-2" />
-              </div>
-              <div className="p-3 bg-yellow-100 rounded-full">
-                <Star className="h-6 w-6 text-yellow-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Star Rating Distribution */}
+      <Card className="border-l-4 border-l-amber-500 hover:shadow-2xl hover:shadow-amber-500/20 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-1">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Star className="h-5 w-5 text-amber-600" />
+            <span>Distribusi Rating Penyedia</span>
+          </CardTitle>
+          <CardDescription>
+            Distribusi rating berdasarkan {totalWithRatings} penyedia yang sudah dinilai
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[5, 4, 3, 2, 1].map((starCount) => {
+              const count = starDistribution[starCount as keyof typeof starDistribution]
+              const percentage = totalWithRatings > 0 ? (count / totalWithRatings) * 100 : 0
+              
+              return (
+                <div key={starCount} className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-1 w-16">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{starCount}</span>
+                    <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                  </div>
+                  <div className="flex-1">
+                    <Progress value={percentage} className="h-2" />
+                  </div>
+                  <div className="flex items-center space-x-2 w-20 justify-end">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{count}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">({percentage.toFixed(1)}%)</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          
+          {totalWithRatings === 0 && (
+            <div className="text-center py-8">
+              <Star className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Belum ada penyedia yang dinilai</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Search and Filter */}
       <Card>
@@ -326,10 +403,10 @@ export default function LaporanPage() {
                   className="px-3 lg:px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-slate-700 dark:text-white text-sm lg:text-base"
                 >
                   <option value="all">Semua Status</option>
-                  <option value="excellent">Sangat Baik (≥4.5)</option>
-                  <option value="good">Baik (≥3.5)</option>
-                  <option value="average">Cukup (≥2.5)</option>
-                  <option value="poor">Kurang (&lt;2.5)</option>
+                  <option value="excellent">Sangat Baik (3.0)</option>
+                  <option value="good">Baik (≥2.0)</option>
+                  <option value="average">Cukup (≥1.0)</option>
+                  <option value="poor">Buruk (0)</option>
                 </select>
 
                 <DropdownMenu>
@@ -407,27 +484,7 @@ export default function LaporanPage() {
                       
                       <div className="lg:ml-8 border-t lg:border-t-0 pt-4 lg:pt-0">
                         <div className="text-center">
-                          <div className="mb-2">
-                            <StarRating rating={item.rataRataSkor} size="lg" showValue={true} className="justify-center" />
-                          </div>
-                          <div className="text-xs lg:text-sm text-slate-600 dark:text-slate-300 mb-3">Rata-rata Skor</div>
-                          <Badge 
-                            variant={
-                              item.rataRataSkor >= 4.5 ? "default" :
-                              item.rataRataSkor >= 3.5 ? "secondary" :
-                              item.rataRataSkor >= 2.5 ? "outline" : "destructive"
-                            }
-                            className={`text-xs lg:text-sm ${
-                              item.rataRataSkor >= 4.5 ? "bg-green-100 text-green-800 border-green-200" :
-                              item.rataRataSkor >= 3.5 ? "bg-blue-100 text-blue-800 border-blue-200" :
-                              item.rataRataSkor >= 2.5 ? "bg-yellow-100 text-yellow-800 border-yellow-200" : 
-                              "bg-red-100 text-red-800 border-red-200"
-                            }`}
-                          >
-                            {item.rataRataSkor >= 4.5 ? "Sangat Baik" :
-                             item.rataRataSkor >= 3.5 ? "Baik" :
-                             item.rataRataSkor >= 2.5 ? "Cukup" : "Kurang"}
-                          </Badge>
+                          <StarRating rating={mapScoreToStars(item.rataRataSkor)} size="lg" showValue={false} className="justify-center" />
                         </div>
                       </div>
                     </div>
@@ -575,11 +632,11 @@ export default function LaporanPage() {
                         
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground">Rating</span>
-                          <StarRating rating={penyedia.rataRataSkor} size="md" showValue={true} />
+                          <StarRating rating={mapScoreToStars(penyedia.rataRataSkor)} size="md" showValue={false} />
                         </div>
                         
                         <Progress 
-                          value={penyedia.rataRataSkor * 20} 
+                          value={(mapScoreToStars(penyedia.rataRataSkor) / 5) * 100} 
                           className="h-2"
                         />
                       </div>
