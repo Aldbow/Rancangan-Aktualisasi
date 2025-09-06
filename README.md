@@ -27,9 +27,12 @@ Sistem penilaian penyedia barang/jasa yang terintegrasi dengan Google Spreadshee
 - ID Penilaian
 - ID Penyedia
 - Nama PPK
-- Email PPK
 - Tanggal Penilaian
-- Kriteria Penilaian (sesuai LKPP)
+- Kualitas dan Kuantitas Barang/Jasa (1-5)
+- Biaya (1-5)
+- Waktu (1-5)
+- Layanan (1-5)
+- Penilaian Akhir
 - Skor Total
 - Keterangan
 

@@ -119,12 +119,11 @@ curl -X POST http://localhost:3000/api/init
 | A | ID Penilaian |
 | B | ID Penyedia |
 | C | Nama PPK |
-| D | Email PPK |
-| E | Tanggal Penilaian |
-| F | Kualitas Barang/Jasa (1-5) |
-| G | Ketepatan Waktu (1-5) |
-| H | Kesesuaian Spesifikasi (1-5) |
-| I | Pelayanan Purna Jual (1-5) |
-| J | Profesionalisme (1-5) |
-| K | Skor Total (rata-rata) |
-| L | Keterangan |
+| D | Tanggal Penilaian |
+| E | Kualitas dan Kuantitas Barang/Jasa (1-5) |
+| F | Biaya (1-5) |
+| G | Waktu (1-5) |
+| H | Layanan (1-5) |
+| I | Penilaian Akhir |
+| J | Skor Total |
+| K | Keterangan |
