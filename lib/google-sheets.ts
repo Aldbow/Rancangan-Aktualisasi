@@ -317,6 +317,41 @@ class GoogleSheetsService {
     return allPenilaian.filter(penilaian => penilaian.idPenyedia === idPenyedia);
   }
 
+  // Optimized search method that combines penyedia with ratings
+  async searchPenyediaWithRatings(query: string): Promise<any[]> {
+    try {
+      // Get both penyedia and penilaian data in parallel
+      const [penyediaList, penilaianList] = await Promise.all([
+        this.searchPenyedia(query),
+        this.getPenilaian()
+      ]);
+
+      // Combine data efficiently
+      const results = penyediaList.map(penyedia => {
+        const penilaianPenyedia = penilaianList.filter(pnl => pnl.idPenyedia === penyedia.id);
+        const totalPenilaian = penilaianPenyedia.length;
+        const rataRataSkor = totalPenilaian > 0 
+          ? penilaianPenyedia.reduce((sum, pnl) => sum + pnl.skorTotal, 0) / totalPenilaian
+          : 0;
+
+        return {
+          ...penyedia,
+          totalPenilaian,
+          rataRataSkor,
+          penilaian: penilaianPenyedia
+        };
+      });
+
+      // Sort by rating (highest first) and limit results for performance
+      return results
+        .sort((a, b) => b.rataRataSkor - a.rataRataSkor)
+        .slice(0, 20); // Limit to top 20 results
+    } catch (error) {
+      console.error('Error searching penyedia with ratings:', error);
+      throw error;
+    }
+  }
+
   // Inisialisasi spreadsheet dengan header jika belum ada
   async initializeSpreadsheet(): Promise<void> {
     try {
