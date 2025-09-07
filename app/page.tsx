@@ -188,9 +188,9 @@ export default function HomePage() {
               <div className="p-4 lg:p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 rounded-2xl w-fit mx-auto mb-4 lg:mb-6 shadow-lg group-hover:shadow-2xl group-hover:shadow-emerald-500/25 transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1">
                 <Users className="h-8 w-8 lg:h-10 lg:w-10 text-white group-hover:scale-110 transition-transform duration-300" />
               </div>
-              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300">Multi PPK</h3>
+              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors duration-300">Penilaian PPK</h3>
               <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 leading-relaxed group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors duration-300">
-                Beberapa PPK dapat memberikan penilaian untuk satu penyedia secara bersamaan
+                PPK dapat memberikan penilaian untuk penyedia dengan mudah dan cepat.
               </p>
             </div>
             

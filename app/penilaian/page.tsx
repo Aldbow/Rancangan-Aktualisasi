@@ -43,9 +43,13 @@ export default function PenilaianPage() {
   // Form data untuk penilaian
   const [formData, setFormData] = useState({
     kualitasKuantitasBarangJasa: 1,
+    komentarKualitasKuantitasBarangJasa: '',
     biaya: 1,
+    komentarBiaya: '',
     waktu: 1,
+    komentarWaktu: '',
     layanan: 1,
+    komentarLayanan: '',
     keterangan: ''
   })
 
@@ -187,9 +191,13 @@ export default function PenilaianPage() {
     setPenyediaList([])
     setFormData({
       kualitasKuantitasBarangJasa: 1,
+      komentarKualitasKuantitasBarangJasa: '',
       biaya: 1,
+      komentarBiaya: '',
       waktu: 1,
+      komentarWaktu: '',
       layanan: 1,
+      komentarLayanan: '',
       keterangan: ''
     })
   }
@@ -270,9 +278,13 @@ export default function PenilaianPage() {
         namaPPK: authenticatedPPK!.nama,
         tanggalPenilaian: new Date().toISOString().split('T')[0],
         kualitasKuantitasBarangJasa: formData.kualitasKuantitasBarangJasa,
+        komentarKualitasKuantitasBarangJasa: formData.komentarKualitasKuantitasBarangJasa,
         biaya: formData.biaya,
+        komentarBiaya: formData.komentarBiaya,
         waktu: formData.waktu,
+        komentarWaktu: formData.komentarWaktu,
         layanan: formData.layanan,
+        komentarLayanan: formData.komentarLayanan,
         keterangan: formData.keterangan
       }
 
@@ -290,9 +302,13 @@ export default function PenilaianPage() {
         setSelectedPenyedia(null)
         setFormData({
           kualitasKuantitasBarangJasa: 1,
+          komentarKualitasKuantitasBarangJasa: '',
           biaya: 1,
+          komentarBiaya: '',
           waktu: 1,
+          komentarWaktu: '',
           layanan: 1,
+          komentarLayanan: '',
           keterangan: ''
         })
         setSearchQuery('')
@@ -641,6 +657,25 @@ export default function PenilaianPage() {
                       {skalaPenilaian.find(s => s.value === formData[criteria.key as keyof typeof formData])?.label || 'Belum dipilih'}
                     </span>
                   </div>
+                </div>
+
+                {/* Comment field for this criteria */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                    Komentar {criteria.label} (Opsional)
+                  </Label>
+                  <Textarea
+                    value={(() => {
+                      const commentKey = `komentar${criteria.key.charAt(0).toUpperCase() + criteria.key.slice(1)}`;
+                      return formData[commentKey as keyof typeof formData] as string || '';
+                    })()}
+                    onChange={(e) => {
+                      const commentKey = `komentar${criteria.key.charAt(0).toUpperCase() + criteria.key.slice(1)}`;
+                      handleInputChange(commentKey, e.target.value);
+                    }}
+                    placeholder={`Berikan komentar tambahan untuk aspek ${criteria.label.toLowerCase()}...`}
+                    className="min-h-[80px] resize-none text-sm"
+                  />
                 </div>
 
                 {/* Criteria description */}
