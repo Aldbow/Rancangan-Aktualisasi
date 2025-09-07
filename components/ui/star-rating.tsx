@@ -1,4 +1,5 @@
 import { Star } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 interface StarRatingProps {
   rating: number
@@ -35,10 +36,16 @@ export function StarRating({
     // Full stars
     for (let i = 0; i < fullStars; i++) {
       stars.push(
-        <Star 
+        <motion.div
           key={`full-${i}`} 
-          className={`${sizeClasses[size]} text-yellow-500 fill-yellow-500`} 
-        />
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: i * 0.1, type: "spring", stiffness: 300 }}
+        >
+          <Star 
+            className={`${sizeClasses[size]} text-yellow-500 fill-yellow-500`} 
+          />
+        </motion.div>
       )
     }
 
@@ -48,7 +55,13 @@ export function StarRating({
         <div key="half" className="relative">
           <Star className={`${sizeClasses[size]} text-gray-300`} />
           <div className="absolute inset-0 overflow-hidden" style={{ width: '50%' }}>
-            <Star className={`${sizeClasses[size]} text-yellow-500 fill-yellow-500`} />
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: fullStars * 0.1, type: "spring", stiffness: 300 }}
+            >
+              <Star className={`${sizeClasses[size]} text-yellow-500 fill-yellow-500`} />
+            </motion.div>
           </div>
         </div>
       )
@@ -58,10 +71,16 @@ export function StarRating({
     const emptyStars = maxStars - fullStars - (hasHalfStar ? 1 : 0)
     for (let i = 0; i < emptyStars; i++) {
       stars.push(
-        <Star 
+        <motion.div
           key={`empty-${i}`} 
-          className={`${sizeClasses[size]} text-gray-300`} 
-        />
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: (fullStars + (hasHalfStar ? 1 : 0) + i) * 0.1, type: "spring", stiffness: 300 }}
+        >
+          <Star 
+            className={`${sizeClasses[size]} text-gray-300`} 
+          />
+        </motion.div>
       )
     }
 
@@ -74,9 +93,14 @@ export function StarRating({
         {renderStars()}
       </div>
       {showValue && (
-        <span className={`font-medium text-gray-700 dark:text-gray-300 ${textSizeClasses[size]}`}>
+        <motion.span 
+          className={`font-medium text-gray-700 dark:text-gray-300 ${textSizeClasses[size]}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
           {rating.toFixed(1)}
-        </span>
+        </motion.span>
       )}
     </div>
   )

@@ -23,9 +23,10 @@ export function ThemeToggle() {
       onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
       className="relative p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-200 group"
       aria-label="Toggle theme"
+      suppressHydrationWarning
     >
-      <Sun className="h-5 w-5 text-white rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-5 w-5 text-white rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 top-2 left-2" />
+      <Sun className={`h-5 w-5 text-white transition-all ${theme === 'dark' ? '-rotate-90 scale-0' : 'rotate-0 scale-100'}`} />
+      <Moon className={`absolute h-5 w-5 text-white transition-all top-2 left-2 ${theme === 'dark' ? 'rotate-0 scale-100' : 'rotate-90 scale-0'}`} />
     </button>
   )
 }

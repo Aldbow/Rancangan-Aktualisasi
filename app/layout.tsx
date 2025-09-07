@@ -5,6 +5,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { ThemeScript } from './theme-script'
+import { AnimatedLayout } from '@/components/animated-layout'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -24,11 +25,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="id">
+    <html lang="id" className="light" suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>
-      <body className={`${inter.variable} font-sans`}>
+      <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
         <ThemeProvider
           defaultTheme="light"
           storageKey="kemnaker-theme"
@@ -73,7 +74,9 @@ export default function RootLayout({
             </div>
           </header>
           <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-            {children}
+            <AnimatedLayout>
+              {children}
+            </AnimatedLayout>
           </main>
           <footer className="bg-gradient-to-r from-slate-800 to-slate-900 border-t mt-auto">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

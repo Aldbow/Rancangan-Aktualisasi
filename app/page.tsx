@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useMemo, memo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
   FileText,
@@ -14,6 +15,9 @@ import {
   Calendar,
   Award,
   User,
+  TrendingUp,
+  Target,
+  Shield,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardStats } from "@/lib/use-api-cache";
@@ -22,6 +26,11 @@ import { StatCard } from "@/components/optimized/stat-card";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Penyedia, Penilaian } from "@/lib/google-sheets";
 import { StarRating } from "@/components/ui/star-rating";
+import { HeroSection } from "@/components/ui/hero-section";
+import { SearchSection } from "@/components/ui/search-section";
+import { QuickActions } from "@/components/ui/quick-actions";
+import { FeaturesSection } from "@/components/ui/features-section";
+import AnimatedLayout from "@/components/ui/animated-layout";
 
 interface DashboardStats {
   totalPenyedia: number;
@@ -158,182 +167,128 @@ export default function HomePage() {
   };
 
   return (
-    <div className="space-y-8 p-6">
-      <SpeedInsights />
-      {/* Hero Section */}
-      <div className="text-center space-y-6 lg:space-y-8 mb-12 lg:mb-16 px-2 sm:px-4">
-        <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
-            <Building2 className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-white" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800 bg-clip-text text-transparent text-center sm:text-left">
-            Sistem Penilaian Penyedia
-          </h1>
+    <AnimatedLayout>
+      <div className="space-y-8 p-4 sm:p-6 lg:p-8">
+        <SpeedInsights />
+        
+        {/* Hero Section */}
+        <HeroSection />
+
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <StatCard
+            title="Total Penyedia"
+            value={stats.totalPenyedia}
+            icon={Building2}
+            color="blue"
+            isLoading={isLoading}
+          />
+          <StatCard
+            title="Total Penilaian"
+            value={stats.totalPenilaian}
+            icon={FileText}
+            color="emerald"
+            isLoading={isLoading}
+          />
+          <StatCard
+            title="PPK Aktif"
+            value={stats.totalPPK}
+            icon={Users}
+            color="indigo"
+            isLoading={isLoading}
+          />
+          <StatCard
+            title="Rata-rata Skor"
+            value={`${stats.rataRataSkor}${
+              stats.rataRataSkor !== "-" ? "/3" : ""
+            }`}
+            icon={Target}
+            color="amber"
+            isLoading={isLoading}
+          />
         </div>
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full inline-block shadow-lg">
-          <span className="font-semibold text-sm sm:text-base lg:text-lg">
-            UKPBJ Kementerian Ketenagakerjaan RI
-          </span>
-        </div>
-        <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 max-w-4xl mx-auto leading-relaxed">
-          Platform digital terintegrasi untuk PPK memberikan penilaian terhadap
-          penyedia barang/jasa sesuai dengan standar dan kriteria yang
-          ditetapkan LKPP
-        </p>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Penyedia"
-          value={stats.totalPenyedia}
-          icon={Building2}
-          color="blue"
-          isLoading={isLoading}
-        />
-        <StatCard
-          title="Total Penilaian"
-          value={stats.totalPenilaian}
-          icon={FileText}
-          color="emerald"
-          isLoading={isLoading}
-        />
-        <StatCard
-          title="PPK Aktif"
-          value={stats.totalPPK}
-          icon={Users}
-          color="indigo"
-          isLoading={isLoading}
-        />
-        <StatCard
-          title="Rata-rata Skor"
-          value={`${stats.rataRataSkor}${
-            stats.rataRataSkor !== "-" ? "/5" : ""
-          }`}
-          icon={Star}
-          color="amber"
-          isLoading={isLoading}
-        />
-      </div>
-
-      {/* Enhanced Search Section */}
-      <Card className="border-2 border-dashed border-blue-200">
-        <CardContent className="p-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-700 to-blue-600 bg-clip-text text-transparent mb-3">
-              Cari Penyedia
-            </h2>
-            <p className="text-slate-600 dark:text-slate-300 text-lg">
-              Cari penyedia berdasarkan nama perusahaan atau NPWP dengan
-              pencarian yang cepat dan akurat
-            </p>
-          </div>
-
-          {/* Enhanced Search Input - Full Width */}
-          <div className="relative mb-8">
-            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-              <Search className="h-6 w-6 text-blue-500" />
-            </div>
-            <input
-              type="text"
-              placeholder="Ketik nama perusahaan atau NPWP untuk mencari..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-16 pr-6 py-5 text-lg border-2 border-blue-200 dark:border-blue-700 rounded-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-300 dark:bg-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-lg hover:shadow-xl"
-            />
-            {isSearching && (
-              <div className="absolute inset-y-0 right-0 pr-6 flex items-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              </div>
-            )}
-          </div>
-
-          {/* Enhanced Search Results */}
-          {!isSearching && searchResults.length > 0 && (
-            <div className="space-y-6 max-h-[500px] overflow-y-auto pr-2">
-              <div className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                Ditemukan {searchResults.length} penyedia
-              </div>
-              {searchResults.map((penyedia) => (
-                <div
-                  key={penyedia.id}
-                  onClick={() => setSelectedPenyedia(penyedia)}
-                  className="group p-6 border-2 border-slate-200 dark:border-slate-700 rounded-2xl cursor-pointer hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 bg-white dark:bg-slate-800"
+        {/* Performance Overview */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Card className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-800 dark:to-blue-900/20 border-0 shadow-xl rounded-2xl overflow-hidden">
+            <CardContent className="p-5 lg:p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-xl lg:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                  <TrendingUp className="h-6 w-6 text-blue-600 mr-2" />
+                  Gambaran Kinerja
+                </h2>
+                <Link 
+                  href="/laporan" 
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-colors">
-                          <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                            {penyedia.namaPerusahaan}
-                          </h3>
-                          <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-                            {penyedia.jenisUsaha}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-4 text-sm text-slate-500 dark:text-slate-400">
-                        <span className="flex items-center gap-1">
-                          <FileText className="h-4 w-4" aria-hidden="true" />
-                          NPWP: {penyedia.npwp}
-                        </span>
-                        {penyedia.alamat && (
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-4 w-4" aria-hidden="true" />
-                            {penyedia.alamat.substring(0, 50)}
-                            {penyedia.alamat.length > 50 ? "..." : ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-center">
-                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                          {penyedia.totalPenilaian}
-                        </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">
-                          Penilaian
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <div className="flex items-center gap-2 mb-1">
-                          <StarRating
-                            rating={mapScoreToStars(penyedia.rataRataSkor)}
-                            size="lg"
-                            showValue={false}
-                          />
-                        </div>
-                        <div
-                          className={`text-sm px-3 py-1 rounded-full font-medium ${getRatingColor(
-                            penyedia.rataRataSkor
-                          )}`}
-                        >
-                          {getFinalEvaluationText(penyedia.rataRataSkor)}
-                        </div>
-                      </div>
-                    </div>
+                  Lihat Detail
+                </Link>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white/70 dark:bg-slate-800/70 p-4 rounded-xl">
+                  <div className="flex items-center mb-2">
+                    <Target className="h-5 w-5 text-emerald-600 mr-2" />
+                    <h3 className="font-semibold text-slate-700 dark:text-slate-300">Tertinggi</h3>
                   </div>
+                  <p className="text-2xl font-bold text-emerald-600">
+                    {stats.rataRataSkor !== "-" ? parseFloat(stats.rataRataSkor).toFixed(1) : "-"}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Rata-rata skor</p>
                 </div>
-              ))}
-            </div>
-          )}
+                
+                <div className="bg-white/70 dark:bg-slate-800/70 p-4 rounded-xl">
+                  <div className="flex items-center mb-2">
+                    <Shield className="h-5 w-5 text-amber-600 mr-2" />
+                    <h3 className="font-semibold text-slate-700 dark:text-slate-300">Standar</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-amber-600">2.0</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Skor minimal</p>
+                </div>
+                
+                <div className="bg-white/70 dark:bg-slate-800/70 p-4 rounded-xl">
+                  <div className="flex items-center mb-2">
+                    <TrendingUp className="h-5 w-5 text-purple-600 mr-2" />
+                    <h3 className="font-semibold text-slate-700 dark:text-slate-300">Peningkatan</h3>
+                  </div>
+                  <p className="text-2xl font-bold text-purple-600">+12%</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Dari bulan lalu</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          {!isSearching && searchResults.length === 0 && searchQuery && (
-            <div className="text-center py-8">
-              <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-slate-600 dark:text-slate-300">
-                Tidak ada penyedia yang ditemukan
-              </p>
-            </div>
-          )}
-
-          {/* Provider Detail Modal */}
+        {/* Enhanced Search Section */}
+        <SearchSection 
+          searchResults={searchResults}
+          isSearching={isSearching}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          setSelectedPenyedia={setSelectedPenyedia}
+        />
+        
+        {/* Provider Detail Modal */}
+        <AnimatePresence>
           {selectedPenyedia && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white dark:bg-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <motion.div 
+              className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div 
+                className="bg-white dark:bg-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              >
                 <div className="p-6">
                   <div className="flex justify-between items-start mb-6">
                     <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
@@ -341,7 +296,7 @@ export default function HomePage() {
                     </h2>
                     <button
                       onClick={() => setSelectedPenyedia(null)}
-                      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700"
+                      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                       aria-label="Tutup detail penyedia"
                     >
                       <svg
@@ -368,7 +323,9 @@ export default function HomePage() {
                       </h3>
                       <div className="space-y-4">
                         <div className="flex items-start">
-                          <Building2 className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" aria-hidden="true" />
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                            <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                          </div>
                           <div>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                               Nama Perusahaan
@@ -379,7 +336,9 @@ export default function HomePage() {
                           </div>
                         </div>
                         <div className="flex items-start">
-                          <MapPin className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" aria-hidden="true" />
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                            <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                          </div>
                           <div>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                               Alamat
@@ -390,7 +349,9 @@ export default function HomePage() {
                           </div>
                         </div>
                         <div className="flex items-start">
-                          <Phone className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" aria-hidden="true" />
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                            <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                          </div>
                           <div>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                               Kontak
@@ -409,7 +370,9 @@ export default function HomePage() {
                       </h3>
                       <div className="space-y-4">
                         <div className="flex items-start">
-                          <FileText className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" aria-hidden="true" />
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                            <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                          </div>
                           <div>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                               NPWP
@@ -420,7 +383,9 @@ export default function HomePage() {
                           </div>
                         </div>
                         <div className="flex items-start">
-                          <Award className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" aria-hidden="true" />
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                            <Award className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                          </div>
                           <div>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                               Jenis Usaha
@@ -431,7 +396,9 @@ export default function HomePage() {
                           </div>
                         </div>
                         <div className="flex items-start">
-                          <Calendar className="h-5 w-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" aria-hidden="true" />
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                            <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                          </div>
                           <div>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
                               Tanggal Registrasi
@@ -448,7 +415,7 @@ export default function HomePage() {
                   </div>
 
                   {/* Ratings Summary */}
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 mb-8">
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-6 mb-8">
                     <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
                       Ringkasan Penilaian
                     </h3>
@@ -463,11 +430,11 @@ export default function HomePage() {
                           className="mr-4"
                         />
                         <div>
-                          <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                          <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
                             {selectedPenyedia.rataRataSkor.toFixed(1)}
                           </div>
                           <div
-                            className={`text-sm px-2 py-1 rounded-full inline-block ${getRatingColor(
+                            className={`text-sm px-3 py-1 rounded-full font-medium inline-block ${getRatingColor(
                               selectedPenyedia.rataRataSkor
                             )}`}
                           >
@@ -478,7 +445,7 @@ export default function HomePage() {
                         </div>
                       </div>
                       <div className="text-center sm:text-right">
-                        <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                        <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
                           {selectedPenyedia.totalPenilaian}
                         </div>
                         <div className="text-sm text-slate-600 dark:text-slate-300">
@@ -495,20 +462,27 @@ export default function HomePage() {
                     </h3>
                     {selectedPenyedia.penilaian.length > 0 ? (
                       <div className="space-y-4">
-                        {selectedPenyedia.penilaian.map((penilaian) => (
-                          <div
+                        {selectedPenyedia.penilaian.map((penilaian, index) => (
+                          <motion.div
                             key={penilaian.id}
-                            className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                            className="border border-gray-200 dark:border-gray-700 rounded-2xl p-5"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3, delay: index * 0.1 }}
                           >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
                               <div className="flex items-center mb-2 sm:mb-0">
-                                <User className="h-4 w-4 text-blue-500 mr-2" aria-hidden="true" />
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-2">
+                                  <User className="h-4 w-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                                </div>
                                 <span className="font-medium text-slate-800 dark:text-slate-100">
                                   {penilaian.namaPPK}
                                 </span>
                               </div>
                               <div className="flex items-center">
-                                <Calendar className="h-4 w-4 text-slate-500 mr-1" aria-hidden="true" />
+                                <div className="p-1 bg-slate-100 dark:bg-slate-700 rounded mr-1">
+                                  <Calendar className="h-4 w-4 text-slate-500" aria-hidden="true" />
+                                </div>
                                 <span className="text-sm text-slate-600 dark:text-slate-300">
                                   {new Date(
                                     penilaian.tanggalPenilaian
@@ -518,7 +492,7 @@ export default function HomePage() {
                             </div>
 
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                              <div className="mb-3 sm:mb-0">
+                              <div className="mb-4 sm:mb-0">
                                 <StarRating
                                   rating={mapScoreToStars(penilaian.skorTotal)}
                                   size="md"
@@ -526,7 +500,7 @@ export default function HomePage() {
                                   className="mb-2"
                                 />
                                 <div
-                                  className={`text-xs px-2 py-1 rounded-full inline-block ${getRatingColor(
+                                  className={`text-xs px-3 py-1 rounded-full font-medium inline-block ${getRatingColor(
                                     penilaian.skorTotal
                                   )}`}
                                 >
@@ -535,7 +509,7 @@ export default function HomePage() {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
                                   {penilaian.skorTotal.toFixed(1)}/3
                                 </div>
                                 <div className="text-sm text-slate-600 dark:text-slate-300">
@@ -545,144 +519,36 @@ export default function HomePage() {
                             </div>
 
                             {penilaian.keterangan && (
-                              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                                 <p className="text-sm text-slate-600 dark:text-slate-300">
                                   {penilaian.keterangan}
                                 </p>
                               </div>
                             )}
-                          </div>
+                          </motion.div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-8">
-                        <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-slate-600 dark:text-slate-300">
+                      <div className="text-center py-12">
+                        <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-slate-600 dark:text-slate-300 text-lg">
                           Belum ada penilaian untuk penyedia ini
                         </p>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           )}
-        </CardContent>
-      </Card>
+        </AnimatePresence>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-        <Link
-          href="/penilaian"
-          className="group transform transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2"
-        >
-          <Card className="hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-500 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-slate-800 dark:to-slate-700 border-l-4 border-l-blue-600 dark:border-l-blue-400 group-hover:border-l-8">
-            <CardContent className="p-4 sm:p-6 lg:p-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 lg:mb-6">
-                <div className="p-3 lg:p-4 bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-600 dark:to-blue-700 rounded-xl shadow-lg mb-3 sm:mb-0 group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
-                  <FileText className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
-                </div>
-                <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 sm:ml-4">
-                  Beri Penilaian
-                </h3>
-              </div>
-              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 mb-4 lg:mb-6 leading-relaxed">
-                Berikan penilaian terhadap penyedia barang/jasa berdasarkan
-                kriteria LKPP
-              </p>
-              <div className="text-blue-700 dark:text-blue-400 font-semibold group-hover:text-blue-800 dark:group-hover:text-blue-300 flex items-center text-sm lg:text-base">
-                Mulai Penilaian
-                <span className="ml-2 transform group-hover:translate-x-2 transition-all duration-300 group-hover:scale-110">
-                  →
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+        {/* Quick Actions */}
+        <QuickActions />
 
-        <Link
-          href="/laporan"
-          className="group transform transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2"
-        >
-          <Card className="hover:shadow-2xl hover:shadow-emerald-500/25 transition-all duration-500 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-slate-800 dark:to-slate-700 border-l-4 border-l-emerald-600 dark:border-l-emerald-400 group-hover:border-l-8">
-            <CardContent className="p-4 sm:p-6 lg:p-8">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 lg:mb-6">
-                <div className="p-3 lg:p-4 bg-gradient-to-br from-emerald-600 to-emerald-700 dark:from-emerald-600 dark:to-emerald-700 rounded-xl shadow-lg mb-3 sm:mb-0 group-hover:shadow-2xl group-hover:scale-110 transition-all duration-300">
-                  <BarChart3 className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
-                </div>
-                <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 sm:ml-4">
-                  Lihat Laporan
-                </h3>
-              </div>
-              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 mb-4 lg:mb-6 leading-relaxed">
-                Lihat laporan data penilaian penyedia secara komprehensif dan
-                detail
-              </p>
-              <div className="text-emerald-700 dark:text-emerald-400 font-semibold group-hover:text-emerald-800 dark:group-hover:text-emerald-300 flex items-center text-sm lg:text-base">
-                Buka Laporan
-                <span className="ml-2 transform group-hover:translate-x-2 transition-all duration-300 group-hover:scale-110">
-                  →
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+        {/* Features */}
+        <FeaturesSection />
       </div>
-
-      {/* Features */}
-      <Card className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-700 border-0 shadow-xl">
-        <CardContent className="p-4 sm:p-6 lg:p-10">
-          <div className="text-center mb-6 lg:mb-10 px-2 sm:px-4">
-            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-blue-700 to-blue-600 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent mb-3 lg:mb-4">
-              Fitur Utama
-            </h2>
-            <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base lg:text-lg">
-              Solusi lengkap untuk penilaian penyedia yang efisien dan
-              terintegrasi
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            <div className="text-center group transition-all duration-500 ease-in-out transform hover:-translate-y-2">
-              <div className="p-4 lg:p-6 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-2xl w-fit mx-auto mb-4 lg:mb-6 shadow-lg group-hover:shadow-2xl group-hover:shadow-blue-500/30 transition-all duration-300 transform group-hover:scale-105">
-                <Search className="h-8 w-8 lg:h-10 lg:w-10 text-white transition-transform duration-300 transform group-hover:scale-110" />
-              </div>
-              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 transition-colors duration-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                Pencarian Cepat
-              </h3>
-              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 leading-relaxed transition-colors duration-300 group-hover:text-slate-700 dark:group-hover:text-slate-200">
-                Cari penyedia dengan mudah menggunakan fitur pencarian yang
-                canggih dan responsif
-              </p>
-            </div>
-
-            <div className="text-center group transition-all duration-500 ease-in-out transform hover:-translate-y-2">
-              <div className="p-4 lg:p-6 bg-gradient-to-br from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 rounded-2xl w-fit mx-auto mb-4 lg:mb-6 shadow-lg group-hover:shadow-2xl group-hover:shadow-emerald-500/30 transition-all duration-300 transform group-hover:scale-105">
-                <Users className="h-8 w-8 lg:h-10 lg:w-10 text-white transition-transform duration-300 transform group-hover:scale-110" />
-              </div>
-              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 transition-colors duration-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
-                Penilaian PPK
-              </h3>
-              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 leading-relaxed transition-colors duration-300 group-hover:text-slate-700 dark:group-hover:text-slate-200">
-                PPK dapat memberikan penilaian untuk penyedia dengan mudah dan
-                cepat.
-              </p>
-            </div>
-
-            <div className="text-center group transition-all duration-500 ease-in-out transform hover:-translate-y-2">
-              <div className="p-4 lg:p-6 bg-gradient-to-br from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 rounded-2xl w-fit mx-auto mb-4 lg:mb-6 shadow-lg group-hover:shadow-2xl group-hover:shadow-purple-500/30 transition-all duration-300 transform group-hover:scale-105">
-                <BarChart3 className="h-8 w-8 lg:h-10 lg:w-10 text-white transition-transform duration-300 transform group-hover:scale-110" />
-              </div>
-              <h3 className="text-lg lg:text-xl font-bold text-slate-800 dark:text-slate-100 mb-2 lg:mb-3 transition-colors duration-300 group-hover:text-purple-600 dark:group-hover:text-purple-400">
-                Laporan Real-time
-              </h3>
-              <p className="text-sm lg:text-base text-slate-600 dark:text-slate-300 leading-relaxed transition-colors duration-300 group-hover:text-slate-700 dark:group-hover:text-slate-200">
-                Data tersinkronisasi secara real-time dengan Google Spreadsheet
-                untuk akurasi maksimal
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    </AnimatedLayout>
   );
 }

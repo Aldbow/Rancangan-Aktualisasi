@@ -7,6 +7,7 @@ const nextConfig = {
   },
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-dropdown-menu', '@radix-ui/react-dialog'],
+    scrollRestoration: true,
   },
   images: {
     formats: ['image/webp', 'image/avif'],
@@ -14,6 +15,20 @@ const nextConfig = {
   },
   compress: true,
   poweredByHeader: false,
+  reactStrictMode: true,
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,
+  },
+  webpack: (config) => {
+    // Handle SVG files
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ['@svgr/webpack'],
+    });
+    
+    return config;
+  },
 }
 
 module.exports = nextConfig
