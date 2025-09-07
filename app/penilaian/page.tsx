@@ -57,20 +57,20 @@ export default function PenilaianPage() {
       description: 'Penilaian terhadap kualitas dan kuantitas barang/jasa yang diserahkan',
       bobot: '30%',
       kriteria: {
-        1: 'Cukup - Kualitas dan kuantitas pekerjaan memenuhi standar minimum',
-        2: 'Baik - Kualitas dan kuantitas pekerjaan sesuai dengan spesifikasi',
-        3: 'Sangat Baik - Kualitas dan kuantitas pekerjaan melebihi ekspektasi'
+        1: 'Cukup (Skor 1): Lebih dari 50% hasil pekerjaan memerlukan perbaikan/penggantian agar sesuai dengan ketentuan kontrak.',
+        2: 'Baik (Skor 2): Kurang dari atau sama dengan 50% hasil pekerjaan memerlukan perbaikan/penggantian agar sesuai dengan ketentuan kontrak.',
+        3: 'Sangat Baik (Skor 3): Hasil pekerjaan sesuai dengan ketentuan kontrak tanpa memerlukan perbaikan/penggantian, atau 100% hasil pekerjaan sesuai dengan ketentuan dalam kontrak.'
       }
     },
     {
       key: 'biaya',
       label: 'Biaya',
-      description: 'Penilaian terhadap efisiensi dan kewajaran biaya yang dikeluarkan',
+      description: 'Penilaian terhadap pengendalian biaya dan perubahan kontrak',
       bobot: '20%',
       kriteria: {
-        1: 'Cukup - Biaya sesuai dengan kontrak namun kurang efisien',
-        2: 'Baik - Biaya efisien dan sesuai dengan nilai kontrak',
-        3: 'Sangat Baik - Biaya sangat efisien dengan hasil maksimal'
+        1: 'Cukup (Skor 1): Tidak melakukan pengendalian biaya dengan baik dan/atau mengajukan perubahan kontrak yang tidak didasari alasan yang dapat dipertanggungjawabkan, sehingga penambahan biaya tidak dapat diantisipasi. Kriteria ini juga mencakup tidak menginformasikan sejak awal kondisi yang berpotensi menambah biaya dan mengajukan perubahan kontrak yang akan berdampak pada penambahan total biaya tanpa alasan memadai sehingga ditolak PPK.',
+        2: 'Baik (Skor 2): Melakukan pengendalian biaya dan/atau mengajukan perubahan kontrak yang didasari alasan yang dapat dipertanggungjawabkan, sehingga penambahan biaya dapat diantisipasi. Kriteria ini juga mencakup melakukan salah satu kondisi pada kriteria Cukup.',
+        3: 'Sangat Baik (Skor 3): Telah melakukan pengendalian biaya dengan baik dengan menginformasikan sejak awal kondisi yang berpotensi menambah biaya dan perubahan kontrak yang diajukan sudah didasari alasan yang dapat dipertanggungjawabkan, sehingga penambahan biaya dapat diantisipasi.'
       }
     },
     {
@@ -79,20 +79,20 @@ export default function PenilaianPage() {
       description: 'Penilaian terhadap ketepatan waktu penyelesaian pekerjaan',
       bobot: '30%',
       kriteria: {
-        1: 'Cukup - Pekerjaan selesai tepat waktu dengan sedikit keterlambatan',
-        2: 'Baik - Pekerjaan selesai tepat waktu sesuai jadwal',
-        3: 'Sangat Baik - Pekerjaan selesai lebih cepat dari jadwal'
+        1: 'Cukup (Skor 1): Penyelesaian pekerjaan terlambat melebihi 50 (lima puluh) hari kalender dari waktu yang ditetapkan dalam kontrak karena kesalahan Penyedia.',
+        2: 'Baik (Skor 2): Penyelesaian pekerjaan terlambat sampai dengan 50 (lima puluh) hari kalender dari waktu yang ditetapkan dalam kontrak karena kesalahan Penyedia.',
+        3: 'Sangat Baik (Skor 3): Penyelesaian pekerjaan sesuai dengan waktu yang ditetapkan dalam kontrak atau lebih cepat sesuai dengan kebutuhan PPK.'
       }
     },
     {
       key: 'layanan',
       label: 'Layanan',
-      description: 'Penilaian terhadap kualitas layanan dan responsivitas penyedia',
+      description: 'Penilaian terhadap responsivitas dan kualitas layanan penyedia',
       bobot: '20%',
       kriteria: {
-        1: 'Cukup - Layanan memadai namun kurang responsif',
-        2: 'Baik - Layanan baik dan responsif terhadap kebutuhan',
-        3: 'Sangat Baik - Layanan excellent dengan respon sangat cepat'
+        1: 'Cukup (Skor 1): Penyedia lambat memberi tanggapan positif atas permintaan PPK dan/atau sulit diajak berdiskusi dalam penyelesaian pelaksanaan pekerjaan.',
+        2: 'Baik (Skor 2): Merespon permintaan dengan penyelesaian sesuai yang diminta atau Penyedia mudah dihubungi dan berdiskusi dalam penyelesaian pelaksanaan pekerjaan.',
+        3: 'Sangat Baik (Skor 3): Merespon permintaan dengan penyelesaian sesuai yang diminta dan Penyedia mudah dihubungi serta berdiskusi dalam penyelesaian pelaksanaan pekerjaan.'
       }
     }
   ]
