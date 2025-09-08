@@ -1,23 +1,70 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 interface CacheEntry<T> {
   data: T
   timestamp: number
   expiry: number
+  compressed?: boolean
+  size?: number
 }
 
 class APICache {
   private cache = new Map<string, CacheEntry<any>>()
   private readonly DEFAULT_EXPIRY = 5 * 60 * 1000 // 5 minutes
+  private readonly MAX_CACHE_SIZE = 50 // Maximum number of entries
+  private readonly COMPRESSION_THRESHOLD = 1024 // Compress data larger than 1KB
+
+  private compress(data: any): string {
+    try {
+      return JSON.stringify(data)
+    } catch {
+      return String(data)
+    }
+  }
+
+  private decompress(data: string): any {
+    try {
+      return JSON.parse(data)
+    } catch {
+      return data
+    }
+  }
+
+  private getDataSize(data: any): number {
+    try {
+      return new Blob([JSON.stringify(data)]).size
+    } catch {
+      return 0
+    }
+  }
+
+  private evictOldEntries(): void {
+    if (this.cache.size <= this.MAX_CACHE_SIZE) return
+
+    const entries = Array.from(this.cache.entries())
+    entries.sort(([, a], [, b]) => a.timestamp - b.timestamp)
+    
+    // Remove oldest entries
+    const toRemove = entries.slice(0, this.cache.size - this.MAX_CACHE_SIZE)
+    toRemove.forEach(([key]) => this.cache.delete(key))
+  }
 
   set<T>(key: string, data: T, expiry?: number): void {
-    this.cache.set(key, {
-      data,
+    const size = this.getDataSize(data)
+    const shouldCompress = size > this.COMPRESSION_THRESHOLD
+    
+    const entry: CacheEntry<T> = {
+      data: shouldCompress ? this.compress(data) as T : data,
       timestamp: Date.now(),
-      expiry: expiry || this.DEFAULT_EXPIRY
-    })
+      expiry: expiry || this.DEFAULT_EXPIRY,
+      compressed: shouldCompress,
+      size
+    }
+
+    this.cache.set(key, entry)
+    this.evictOldEntries()
   }
 
   get<T>(key: string): T | null {
@@ -30,15 +77,38 @@ class APICache {
       return null
     }
 
-    return entry.data
+    // Update timestamp for LRU behavior
+    entry.timestamp = now
+    this.cache.set(key, entry)
+
+    return entry.compressed ? this.decompress(entry.data as string) : entry.data
   }
 
   invalidate(key: string): void {
     this.cache.delete(key)
   }
 
+  invalidatePattern(pattern: string): void {
+    const regex = new RegExp(pattern)
+    const keysToDelete = Array.from(this.cache.keys()).filter(key => regex.test(key))
+    keysToDelete.forEach(key => this.cache.delete(key))
+  }
+
   clear(): void {
     this.cache.clear()
+  }
+
+  getStats() {
+    const entries = Array.from(this.cache.values())
+    const totalSize = entries.reduce((sum, entry) => sum + (entry.size || 0), 0)
+    const compressedEntries = entries.filter(entry => entry.compressed).length
+    
+    return {
+      totalEntries: this.cache.size,
+      totalSize,
+      compressedEntries,
+      compressionRatio: compressedEntries / this.cache.size
+    }
   }
 }
 
@@ -48,6 +118,9 @@ interface UseApiCacheOptions {
   expiry?: number
   revalidateOnFocus?: boolean
   revalidateInterval?: number
+  dedupingInterval?: number
+  errorRetryCount?: number
+  errorRetryInterval?: number
 }
 
 export function useApiCache<T>(
@@ -59,73 +132,155 @@ export function useApiCache<T>(
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
-  const { expiry, revalidateOnFocus = true, revalidateInterval } = options
+  const { 
+    expiry, 
+    revalidateOnFocus = true, 
+    revalidateInterval,
+    dedupingInterval = 2000,
+    errorRetryCount = 3,
+    errorRetryInterval = 1000
+  } = options
 
-  const fetchData = useCallback(async (forceRefresh = false) => {
+  const fetchingRef = useRef<Promise<T> | null>(null)
+  const retryCountRef = useRef(0)
+  const mountedRef = useRef(true)
+
+  const fetchData = useCallback(async (forceRefresh = false): Promise<T | null> => {
+    // Don't update state if component is unmounted
+    if (!mountedRef.current) return null
+
     try {
-      setLoading(true)
-      setError(null)
+      // Only set error to null if we're not already loading to prevent unnecessary re-renders
+      if (error) {
+        setError(null)
+      }
+
+      // Deduping: if already fetching, return the same promise
+      if (fetchingRef.current && !forceRefresh) {
+        return await fetchingRef.current
+      }
 
       // Check cache first unless force refresh
       if (!forceRefresh) {
         const cachedData = apiCache.get<T>(key)
         if (cachedData) {
-          setData(cachedData)
-          setLoading(false)
+          if (mountedRef.current) {
+            setData(cachedData)
+            setLoading(false)
+          }
           return cachedData
         }
       }
 
-      // Fetch fresh data
-      const freshData = await fetcher()
-      apiCache.set(key, freshData, expiry)
-      setData(freshData)
+      if (mountedRef.current) {
+        setLoading(true)
+      }
+
+      // Create and store the fetch promise
+      const fetchPromise = fetcher()
+      fetchingRef.current = fetchPromise
+
+      const freshData = await fetchPromise
+      
+      // Clear the fetching promise
+      fetchingRef.current = null
+      retryCountRef.current = 0
+
+      if (mountedRef.current) {
+        apiCache.set(key, freshData, expiry)
+        setData(freshData)
+      }
       return freshData
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('Unknown error')
-      setError(error)
-      throw error
+      fetchingRef.current = null
+      const errorObj = err instanceof Error ? err : new Error('Unknown error')
+      
+      // Retry logic
+      if (retryCountRef.current < errorRetryCount && mountedRef.current) {
+        retryCountRef.current++
+        setTimeout(() => {
+          if (mountedRef.current) {
+            fetchData(forceRefresh)
+          }
+        }, errorRetryInterval * retryCountRef.current)
+        return null
+      }
+
+      if (mountedRef.current) {
+        setError(errorObj)
+      }
+      throw errorObj
     } finally {
-      setLoading(false)
+      if (mountedRef.current) {
+        setLoading(false)
+      }
     }
-  }, [key, fetcher, expiry])
+  }, [key, fetcher, expiry, errorRetryCount, errorRetryInterval])
 
   const mutate = useCallback((newData: T) => {
-    apiCache.set(key, newData, expiry)
-    setData(newData)
+    if (mountedRef.current) {
+      apiCache.set(key, newData, expiry)
+      setData(newData)
+    }
   }, [key, expiry])
 
   const invalidate = useCallback(() => {
     apiCache.invalidate(key)
   }, [key])
 
-  // Initial fetch
+  // Track component mount status
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  // Initial fetch - only run once on mount
+  useEffect(() => {
+    let cancelled = false
+    
+    const initialFetch = async () => {
+      if (!cancelled) {
+        await fetchData()
+      }
+    }
+    
+    initialFetch()
+    
+    return () => {
+      cancelled = true
+    }
+  }, [key]) // Only depend on key, not fetchData
 
   // Revalidate on window focus
   useEffect(() => {
     if (!revalidateOnFocus) return
 
     const handleFocus = () => {
-      fetchData()
+      // Only revalidate if data is stale
+      const cachedData = apiCache.get<T>(key)
+      if (!cachedData && mountedRef.current) {
+        fetchData()
+      }
     }
 
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
-  }, [fetchData, revalidateOnFocus])
+  }, [key, revalidateOnFocus, fetchData])
 
   // Revalidate on interval
   useEffect(() => {
     if (!revalidateInterval) return
 
     const interval = setInterval(() => {
-      fetchData()
+      if (mountedRef.current) {
+        fetchData()
+      }
     }, revalidateInterval)
 
     return () => clearInterval(interval)
-  }, [fetchData, revalidateInterval])
+  }, [key, revalidateInterval, fetchData])
 
   return {
     data,
@@ -133,7 +288,7 @@ export function useApiCache<T>(
     error,
     mutate,
     invalidate,
-    refetch: () => fetchData(true)
+    refetch: useCallback(() => fetchData(true), [fetchData])
   }
 }
 
@@ -146,7 +301,10 @@ export function usePenyediaData() {
       if (!response.ok) throw new Error('Failed to fetch penyedia')
       return response.json()
     },
-    { expiry: 10 * 60 * 1000 } // 10 minutes cache
+    { 
+      expiry: 10 * 60 * 1000, // 10 minutes cache
+      errorRetryCount: 2
+    }
   )
 }
 
@@ -158,7 +316,10 @@ export function usePenilaianData() {
       if (!response.ok) throw new Error('Failed to fetch penilaian')
       return response.json()
     },
-    { expiry: 5 * 60 * 1000 } // 5 minutes cache
+    { 
+      expiry: 5 * 60 * 1000, // 5 minutes cache
+      errorRetryCount: 2
+    }
   )
 }
 
@@ -170,7 +331,10 @@ export function usePPKData() {
       if (!response.ok) throw new Error('Failed to fetch PPK')
       return response.json()
     },
-    { expiry: 10 * 60 * 1000 } // 10 minutes cache
+    { 
+      expiry: 10 * 60 * 1000, // 10 minutes cache
+      errorRetryCount: 2
+    }
   )
 }
 
@@ -196,6 +360,13 @@ export function useDashboardStats() {
 
       return { penyedia, penilaian, ppk }
     },
-    { expiry: 3 * 60 * 1000 } // 3 minutes cache for dashboard
+    { 
+      expiry: 3 * 60 * 1000, // 3 minutes cache for dashboard
+      revalidateInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
+      errorRetryCount: 3
+    }
   )
 }
+
+// Export cache instance for debugging
+export { apiCache }

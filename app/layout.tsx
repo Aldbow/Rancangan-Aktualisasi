@@ -11,12 +11,22 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   preload: true,
-  variable: '--font-inter'
+  variable: '--font-inter',
+  fallback: ['system-ui', 'arial']
 })
 
 export const metadata: Metadata = {
   title: 'Sistem Penilaian Penyedia UKPBJ Kemnaker',
   description: 'Sistem penilaian penyedia barang/jasa untuk PPK sesuai standar UKPBJ Kemnaker',
+  keywords: 'UKPBJ, Kemnaker, penilaian penyedia, procurement, government',
+  authors: [{ name: 'UKPBJ Kemnaker' }],
+  viewport: 'width=device-width, initial-scale=1',
+  robots: 'index, follow',
+  openGraph: {
+    title: 'Sistem Penilaian Penyedia UKPBJ Kemnaker',
+    description: 'Sistem penilaian penyedia barang/jasa untuk PPK sesuai standar UKPBJ Kemnaker',
+    type: 'website',
+  }
 }
 
 export default function RootLayout({
@@ -28,8 +38,12 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <head>
         <ThemeScript />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
       </head>
-      <body className={`${inter.variable} font-sans`} suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
         <ThemeProvider
           defaultTheme="light"
           storageKey="kemnaker-theme"
@@ -43,29 +57,47 @@ export default function RootLayout({
                     <Image 
                       src="/Logo_Kemnaker.png" 
                       alt="Logo Kemnaker" 
-                      width={32}
-                      height={32}
+                      width={40}
+                      height={40}
                       className="w-full h-full object-contain"
                       priority
+                      sizes="(max-width: 768px) 32px, 40px"
+                      quality={90}
                     />
                   </div>
                   {/* <h1 className="hidden md:block text-lg lg:text-2xl font-bold text-slate-800 dark:text-white">
                     Sistem Penilaian Penyedia UKPBJ Kemnaker
                   </h1> */}
                 </div>
-                <nav className="flex items-center space-x-1 sm:space-x-2">
-                  <a href="/" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300">
+                <nav className="flex items-center space-x-1 sm:space-x-2" role="navigation" aria-label="Main navigation">
+                  <a 
+                    href="/" 
+                    className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-200"
+                    aria-label="Beranda"
+                  >
                     <span className="hidden sm:inline">Beranda</span>
                     <span className="sm:hidden">Home</span>
                   </a>
-                  <a href="/penilaian" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300">
+                  <a 
+                    href="/penilaian" 
+                    className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-200"
+                    aria-label="Penilaian Penyedia"
+                  >
                     <span className="hidden sm:inline">Penilaian</span>
                     <span className="sm:hidden">Nilai</span>
                   </a>
-                  <a href="/laporan" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300">
+                  <a 
+                    href="/laporan" 
+                    className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-200"
+                    aria-label="Laporan"
+                  >
                     Laporan
                   </a>
-                  <a href="/dashboard" className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300">
+                  <a 
+                    href="/dashboard" 
+                    className="text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 px-3 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors duration-200"
+                    aria-label="Dashboard"
+                  >
                     Dashboard
                   </a>
                   <ThemeToggle />
@@ -73,12 +105,12 @@ export default function RootLayout({
               </div>
             </div>
           </header>
-          <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+          <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full" role="main">
             <AnimatedLayout>
               {children}
             </AnimatedLayout>
           </main>
-          <footer className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-700/50 mt-auto">
+          <footer className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-700/50 mt-auto" role="contentinfo">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="text-center">
                 <div className="flex items-center justify-center space-x-2 mb-3">
@@ -89,6 +121,8 @@ export default function RootLayout({
                       width={32}
                       height={32}
                       className="w-full h-full object-contain"
+                      sizes="32px"
+                      quality={85}
                     />
                   </div>
                   <span className="text-slate-800 dark:text-white font-semibold">UKPBJ Kemnaker</span>

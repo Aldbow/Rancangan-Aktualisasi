@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "analyze": "ANALYZE=true next build",
+    "build:analyze": "cross-env ANALYZE=true next build"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.7",
@@ -46,6 +48,8 @@
   },
   "devDependencies": {
     "eslint": "^8.57.0",
-    "eslint-config-next": "14.2.5"
+    "eslint-config-next": "14.2.5",
+    "webpack-bundle-analyzer": "^4.10.1",
+    "cross-env": "^7.0.3"
   }
 }

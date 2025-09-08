@@ -1,56 +1,136 @@
-import React from 'react'
+'use client'
 
-interface SkeletonProps {
+import { cn } from '@/lib/utils'
+
+interface LoadingSkeletonProps {
   className?: string
-  width?: string
-  height?: string
+  height?: string | number
+  width?: string | number
+  variant?: 'default' | 'card' | 'text' | 'avatar' | 'button'
+  lines?: number
+  animate?: boolean
 }
 
-export const Skeleton = React.memo(({ className = '', width = '100%', height = '1rem' }: SkeletonProps) => {
+export function LoadingSkeleton({
+  className,
+  height = '1rem',
+  width = '100%',
+  variant = 'default',
+  lines = 1,
+  animate = true,
+}: LoadingSkeletonProps) {
+  const baseClasses = cn(
+    'bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700',
+    animate && 'animate-shimmer bg-[length:200%_100%]',
+    'rounded-md'
+  )
+
+  if (variant === 'card') {
+    return (
+      <div className={cn('space-y-4 p-4', className)}>
+        <div className={cn(baseClasses, 'h-48 w-full rounded-xl')} />
+        <div className="space-y-2">
+          <div className={cn(baseClasses, 'h-4 w-3/4')} />
+          <div className={cn(baseClasses, 'h-4 w-1/2')} />
+        </div>
+      </div>
+    )
+  }
+
+  if (variant === 'text') {
+    return (
+      <div className={cn('space-y-2', className)}>
+        {Array.from({ length: lines }).map((_, i) => (
+          <div
+            key={i}
+            className={cn(
+              baseClasses,
+              'h-4',
+              i === lines - 1 ? 'w-3/4' : 'w-full'
+            )}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  if (variant === 'avatar') {
+    return (
+      <div className={cn(baseClasses, 'h-10 w-10 rounded-full', className)} />
+    )
+  }
+
+  if (variant === 'button') {
+    return (
+      <div className={cn(baseClasses, 'h-10 w-24 rounded-lg', className)} />
+    )
+  }
+
   return (
-    <div 
-      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}
-      style={{ width, height }}
+    <div
+      className={cn(baseClasses, className)}
+      style={{
+        height: typeof height === 'number' ? `${height}px` : height,
+        width: typeof width === 'number' ? `${width}px` : width,
+      }}
     />
   )
-})
+}
 
-Skeleton.displayName = 'Skeleton'
+// Specialized skeleton components
+export function CardSkeleton({ className }: { className?: string }) {
+  return <LoadingSkeleton variant="card" className={className} />
+}
 
-export const CardSkeleton = React.memo(() => (
-  <div className="border rounded-lg p-6 space-y-4">
-    <div className="flex items-center justify-between">
-      <div className="space-y-2">
-        <Skeleton height="1.5rem" width="200px" />
-        <Skeleton height="1rem" width="150px" />
+export function TextSkeleton({ 
+  lines = 3, 
+  className 
+}: { 
+  lines?: number
+  className?: string 
+}) {
+  return <LoadingSkeleton variant="text" lines={lines} className={className} />
+}
+
+export function AvatarSkeleton({ className }: { className?: string }) {
+  return <LoadingSkeleton variant="avatar" className={className} />
+}
+
+export function ButtonSkeleton({ className }: { className?: string }) {
+  return <LoadingSkeleton variant="button" className={className} />
+}
+
+// Stats card skeleton
+export function StatCardSkeleton() {
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+      <div className="flex items-center justify-between mb-4">
+        <div className="space-y-2">
+          <LoadingSkeleton height="1rem" width="6rem" />
+          <LoadingSkeleton height="2rem" width="4rem" />
+        </div>
+        <LoadingSkeleton variant="avatar" className="h-12 w-12" />
       </div>
-      <Skeleton height="3rem" width="3rem" className="rounded-full" />
+      <LoadingSkeleton height="0.75rem" width="8rem" />
     </div>
-  </div>
-))
+  )
+}
 
-CardSkeleton.displayName = 'CardSkeleton'
-
-export const StatCardSkeleton = React.memo(() => (
-  <div className="border-l-4 border-l-gray-300 rounded-lg p-6">
-    <div className="flex items-center justify-between">
-      <div className="space-y-2">
-        <Skeleton height="1rem" width="120px" />
-        <Skeleton height="2rem" width="80px" />
+// Search result skeleton
+export function SearchResultSkeleton() {
+  return (
+    <div className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl space-y-3">
+      <div className="flex items-start justify-between">
+        <div className="space-y-2 flex-1">
+          <LoadingSkeleton height="1.25rem" width="60%" />
+          <LoadingSkeleton height="1rem" width="40%" />
+        </div>
+        <LoadingSkeleton height="1.5rem" width="4rem" />
       </div>
-      <Skeleton height="3rem" width="3rem" className="rounded-xl" />
+      <div className="flex items-center space-x-4">
+        <LoadingSkeleton height="1rem" width="6rem" />
+        <LoadingSkeleton height="1rem" width="8rem" />
+      </div>
     </div>
-  </div>
-))
-
-StatCardSkeleton.displayName = 'StatCardSkeleton'
-
-export const ListSkeleton = React.memo(({ count = 3 }: { count?: number }) => (
-  <div className="space-y-4">
-    {Array.from({ length: count }).map((_, i) => (
-      <CardSkeleton key={i} />
-    ))}
-  </div>
-))
-
-ListSkeleton.displayName = 'ListSkeleton'
+  )
+}

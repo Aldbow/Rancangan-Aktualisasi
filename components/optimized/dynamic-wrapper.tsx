@@ -1,35 +1,40 @@
 'use client'
 
-import dynamic from 'next/dynamic'
-import { ComponentType, Suspense } from 'react'
-import { Skeleton } from './loading-skeleton'
+import { Suspense, ComponentType, ReactNode } from 'react'
+import { LoadingSkeleton } from './loading-skeleton'
 
-// Dynamic import wrapper with loading fallback
-export function createDynamicComponent<T extends Record<string, any> = Record<string, any>>(
-  importFn: () => Promise<{ default: ComponentType<T> }>,
-  fallback?: ComponentType
-) {
-  const DynamicComponent = dynamic(importFn, {
-    loading: () => {
-      if (fallback) {
-        const FallbackComponent = fallback
-        return <FallbackComponent />
-      }
-      return <Skeleton height="200px" />
-    },
-    ssr: true
-  })
+interface DynamicWrapperProps {
+  children: ReactNode
+  fallback?: ReactNode
+  className?: string
+}
 
-  return function WrappedComponent(props: T) {
-    const fallbackElement = fallback ? (() => {
-      const FallbackComponent = fallback
-      return <FallbackComponent />
-    })() : <Skeleton height="200px" />
-    
-    return (
-      <Suspense fallback={fallbackElement}>
-        <DynamicComponent {...(props as any)} />
+export function DynamicWrapper({ 
+  children, 
+  fallback = <LoadingSkeleton />, 
+  className 
+}: DynamicWrapperProps) {
+  return (
+    <div className={className}>
+      <Suspense fallback={fallback}>
+        {children}
       </Suspense>
-    )
-  }
+    </div>
+  )
+}
+
+// Higher-order component for dynamic imports
+export function withDynamicWrapper<P extends object>(
+  Component: ComponentType<P>,
+  fallback?: ReactNode
+) {
+  const WrappedComponent = (props: P) => (
+    <DynamicWrapper fallback={fallback}>
+      <Component {...props} />
+    </DynamicWrapper>
+  )
+  
+  WrappedComponent.displayName = `withDynamicWrapper(${Component.displayName || Component.name})`
+  
+  return WrappedComponent
 }

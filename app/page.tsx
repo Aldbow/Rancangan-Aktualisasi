@@ -57,11 +57,16 @@ export default function HomePage() {
 
   // Optimized search with caching
   const searchPenyedia = useCallback(async (query: string) => {
-    const response = await fetch(
-      `/api/penyedia/search?q=${encodeURIComponent(query)}`
-    );
-    if (!response.ok) throw new Error("Search failed");
-    return response.json();
+    try {
+      const response = await fetch(
+        `/api/penyedia/search?q=${encodeURIComponent(query)}`
+      );
+      if (!response.ok) throw new Error("Search failed");
+      return response.json();
+    } catch (error) {
+      console.error('Search error:', error);
+      return [];
+    }
   }, []);
 
   const {
@@ -75,7 +80,9 @@ export default function HomePage() {
 
   // Handle search query changes
   useEffect(() => {
-    search(searchQuery);
+    if (searchQuery.trim()) {
+      search(searchQuery);
+    }
   }, [searchQuery, search]);
 
   const { stats, topPenyedia } = useMemo(() => {
@@ -94,28 +101,28 @@ export default function HomePage() {
     const { penyedia, penilaian, ppk } = dashboardData;
 
     // Calculate stats
-    const totalPenyedia = penyedia.length;
-    const totalPenilaian = penilaian.length;
-    const totalPPK = ppk.length; // Get PPK count from PPK sheet
+    const totalPenyedia = penyedia?.length || 0;
+    const totalPenilaian = penilaian?.length || 0;
+    const totalPPK = ppk?.length || 0;
     const rataRataSkor =
-      penilaian.length > 0
+      penilaian && penilaian.length > 0
         ? (
-            penilaian.reduce((sum: number, p: any) => sum + p.skorTotal, 0) /
+            penilaian.reduce((sum: number, p: any) => sum + (p.skorTotal || 0), 0) /
             penilaian.length
           ).toFixed(1)
         : "-";
 
     // Calculate top penyedia
     const penyediaWithRatings = penyedia
-      .map((p: any) => {
-        const penilaianPenyedia = penilaian.filter(
+      ?.map((p: any) => {
+        const penilaianPenyedia = penilaian?.filter(
           (pnl: any) => pnl.idPenyedia === p.id
-        );
+        ) || [];
         const totalPenilaianCount = penilaianPenyedia.length;
         const rataRata =
           totalPenilaianCount > 0
             ? penilaianPenyedia.reduce(
-                (sum: number, pnl: any) => sum + pnl.skorTotal,
+                (sum: number, pnl: any) => sum + (pnl.skorTotal || 0),
                 0
               ) / totalPenilaianCount
             : 0;
@@ -123,11 +130,12 @@ export default function HomePage() {
           ...p,
           totalPenilaian: totalPenilaianCount,
           rataRataSkor: rataRata,
+          penilaian: penilaianPenyedia,
         };
       })
-      .filter((p: any) => p.totalPenilaian > 0)
-      .sort((a: any, b: any) => b.rataRataSkor - a.rataRataSkor)
-      .slice(0, 3);
+      ?.filter((p: any) => p.totalPenilaian > 0)
+      ?.sort((a: any, b: any) => b.rataRataSkor - a.rataRataSkor)
+      ?.slice(0, 3) || [];
 
     return {
       stats: {
@@ -141,30 +149,30 @@ export default function HomePage() {
   }, [dashboardData]);
 
   // Map LKPP score (1-3) to 5-star rating
-  const mapScoreToStars = (score: number) => {
+  const mapScoreToStars = useCallback((score: number) => {
     if (score === 0) return 0;
     if (score >= 1 && score < 2) return 2; // Cukup = 2 stars
     if (score >= 2 && score < 3) return 4; // Baik = 4 stars
     if (score === 3) return 5; // Sangat Baik = 5 stars
     return 1; // fallback
-  };
+  }, []);
 
   // Get final evaluation text
-  const getFinalEvaluationText = (score: number) => {
+  const getFinalEvaluationText = useCallback((score: number) => {
     if (score === 3) return "Sangat Baik";
     if (score >= 2 && score < 3) return "Baik";
     if (score >= 1 && score < 2) return "Cukup";
     if (score === 0) return "Buruk";
     return "Cukup"; // fallback
-  };
+  }, []);
 
   // Get rating color based on LKPP scale (1-3)
-  const getRatingColor = (rating: number) => {
+  const getRatingColor = useCallback((rating: number) => {
     if (rating >= 2.5) return "text-green-600 bg-green-100";
     if (rating >= 2.0) return "text-blue-600 bg-blue-100";
     if (rating >= 1.0) return "text-yellow-600 bg-yellow-100";
     return "text-red-600 bg-red-100";
-  };
+  }, []);
 
   return (
     <AnimatedLayout>
@@ -266,7 +274,7 @@ export default function HomePage() {
 
         {/* Enhanced Search Section */}
         <SearchSection 
-          searchResults={searchResults}
+          searchResults={searchResults || []}
           isSearching={isSearching}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -331,7 +339,7 @@ export default function HomePage() {
                               Nama Perusahaan
                             </p>
                             <p className="font-medium text-slate-800 dark:text-slate-100">
-                              {selectedPenyedia.namaPerusahaan}
+                              {selectedPenyedia.namaPerusahaan || "-"}
                             </p>
                           </div>
                         </div>
@@ -378,7 +386,7 @@ export default function HomePage() {
                               NPWP
                             </p>
                             <p className="font-medium text-slate-800 dark:text-slate-100">
-                              {selectedPenyedia.npwp}
+                              {selectedPenyedia.npwp || "-"}
                             </p>
                           </div>
                         </div>
@@ -391,7 +399,7 @@ export default function HomePage() {
                               Jenis Usaha
                             </p>
                             <p className="font-medium text-slate-800 dark:text-slate-100">
-                              {selectedPenyedia.jenisUsaha}
+                              {selectedPenyedia.jenisUsaha || "-"}
                             </p>
                           </div>
                         </div>
@@ -404,9 +412,10 @@ export default function HomePage() {
                               Tanggal Registrasi
                             </p>
                             <p className="font-medium text-slate-800 dark:text-slate-100">
-                              {new Date(
-                                selectedPenyedia.tanggalRegistrasi
-                              ).toLocaleDateString("id-ID")}
+                              {selectedPenyedia.tanggalRegistrasi 
+                                ? new Date(selectedPenyedia.tanggalRegistrasi).toLocaleDateString("id-ID")
+                                : "-"
+                              }
                             </p>
                           </div>
                         </div>
@@ -423,7 +432,7 @@ export default function HomePage() {
                       <div className="flex items-center mb-4 sm:mb-0">
                         <StarRating
                           rating={mapScoreToStars(
-                            selectedPenyedia.rataRataSkor
+                            selectedPenyedia.rataRataSkor || 0
                           )}
                           size="lg"
                           showValue={false}
@@ -431,22 +440,22 @@ export default function HomePage() {
                         />
                         <div>
                           <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-                            {selectedPenyedia.rataRataSkor.toFixed(1)}
+                            {(selectedPenyedia.rataRataSkor || 0).toFixed(1)}
                           </div>
                           <div
                             className={`text-sm px-3 py-1 rounded-full font-medium inline-block ${getRatingColor(
-                              selectedPenyedia.rataRataSkor
+                              selectedPenyedia.rataRataSkor || 0
                             )}`}
                           >
                             {getFinalEvaluationText(
-                              selectedPenyedia.rataRataSkor
+                              selectedPenyedia.rataRataSkor || 0
                             )}
                           </div>
                         </div>
                       </div>
                       <div className="text-center sm:text-right">
                         <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
-                          {selectedPenyedia.totalPenilaian}
+                          {selectedPenyedia.totalPenilaian || 0}
                         </div>
                         <div className="text-sm text-slate-600 dark:text-slate-300">
                           Total Penilaian
@@ -460,11 +469,11 @@ export default function HomePage() {
                     <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
                       Riwayat Penilaian
                     </h3>
-                    {selectedPenyedia.penilaian.length > 0 ? (
+                    {selectedPenyedia.penilaian && selectedPenyedia.penilaian.length > 0 ? (
                       <div className="space-y-4">
                         {selectedPenyedia.penilaian.map((penilaian, index) => (
                           <motion.div
-                            key={penilaian.id}
+                            key={penilaian.id || index}
                             className="border border-gray-200 dark:border-gray-700 rounded-2xl p-5"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -476,7 +485,7 @@ export default function HomePage() {
                                   <User className="h-4 w-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
                                 </div>
                                 <span className="font-medium text-slate-800 dark:text-slate-100">
-                                  {penilaian.namaPPK}
+                                  {penilaian.namaPPK || "PPK"}
                                 </span>
                               </div>
                               <div className="flex items-center">
@@ -484,9 +493,10 @@ export default function HomePage() {
                                   <Calendar className="h-4 w-4 text-slate-500" aria-hidden="true" />
                                 </div>
                                 <span className="text-sm text-slate-600 dark:text-slate-300">
-                                  {new Date(
-                                    penilaian.tanggalPenilaian
-                                  ).toLocaleDateString("id-ID")}
+                                  {penilaian.tanggalPenilaian 
+                                    ? new Date(penilaian.tanggalPenilaian).toLocaleDateString("id-ID")
+                                    : "-"
+                                  }
                                 </span>
                               </div>
                             </div>
@@ -494,23 +504,23 @@ export default function HomePage() {
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between">
                               <div className="mb-4 sm:mb-0">
                                 <StarRating
-                                  rating={mapScoreToStars(penilaian.skorTotal)}
+                                  rating={mapScoreToStars(penilaian.skorTotal || 0)}
                                   size="md"
                                   showValue={false}
                                   className="mb-2"
                                 />
                                 <div
                                   className={`text-xs px-3 py-1 rounded-full font-medium inline-block ${getRatingColor(
-                                    penilaian.skorTotal
+                                    penilaian.skorTotal || 0
                                   )}`}
                                 >
                                   {penilaian.penilaianAkhir ||
-                                    getFinalEvaluationText(penilaian.skorTotal)}
+                                    getFinalEvaluationText(penilaian.skorTotal || 0)}
                                 </div>
                               </div>
                               <div className="text-right">
                                 <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-                                  {penilaian.skorTotal.toFixed(1)}/3
+                                  {(penilaian.skorTotal || 0).toFixed(1)}/3
                                 </div>
                                 <div className="text-sm text-slate-600 dark:text-slate-300">
                                   Skor Total

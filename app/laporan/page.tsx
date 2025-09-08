@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { BarChart3, Building2, Users, Star, TrendingUp, Download, Award, Trophy, Medal, ChevronDown, FileText, FileSpreadsheet, Search, Filter } from 'lucide-react'
 import { StarRating } from '@/components/ui/star-rating'
 import { Button } from '@/components/ui/button'
@@ -35,12 +35,7 @@ export default function LaporanPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
 
-  // Fetch data
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true)
     try {
       const [penyediaResponse, penilaianResponse, ppkResponse] = await Promise.all([
@@ -86,7 +81,12 @@ export default function LaporanPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  // Fetch data
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
 
   // Filter data based on search and status
   const filteredData = penyediaData.filter(penyedia => {

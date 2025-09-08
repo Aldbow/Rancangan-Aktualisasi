@@ -273,7 +273,7 @@ export default function PenilaianPage() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, searchPenyedia]);
 
   // Handle form input change
   const handleInputChange = (field: string, value: any) => {
