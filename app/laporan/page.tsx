@@ -586,19 +586,20 @@ export default function LaporanPage() {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <div className="text-sm text-slate-600 dark:text-slate-300">
-                  Halaman {currentPage} dari {totalPages} ({totalItems} total items)
-                </div>
-                
-                <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                {/* Page info and items per page - stacked on mobile */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="text-sm text-slate-600 dark:text-slate-300 text-center sm:text-left">
+                    Halaman {currentPage} dari {totalPages} ({totalItems} total items)
+                  </div>
+                  
                   {/* Items per page selector */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center sm:justify-end gap-2">
                     <label className="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">Items per halaman:</label>
                     <select
                       value={itemsPerPage}
                       onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-slate-700 dark:text-white text-sm"
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-slate-700 dark:text-white text-sm min-w-0"
                     >
                       <option value={5}>5</option>
                       <option value={10}>10</option>
@@ -607,19 +608,22 @@ export default function LaporanPage() {
                       <option value={100}>100</option>
                     </select>
                   </div>
+                </div>
 
-                  <div className="flex items-center gap-2">
-                    {/* Previous Button */}
-                    <button
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                      className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Sebelumnya
-                    </button>
+                {/* Navigation buttons - centered and responsive */}
+                <div className="flex flex-col xs:flex-row items-center justify-center gap-3">
+                  {/* Previous Button */}
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="w-full xs:w-auto px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Sebelumnya
+                  </button>
 
-                    {/* Page Numbers */}
-                    <div className="flex items-center gap-1">
+                  {/* Page Numbers - scrollable on very small screens */}
+                  <div className="flex items-center gap-1 overflow-x-auto pb-1 max-w-full">
+                    <div className="flex items-center gap-1 min-w-max">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                         let pageNum;
                         if (totalPages <= 5) {
@@ -636,7 +640,7 @@ export default function LaporanPage() {
                           <button
                             key={pageNum}
                             onClick={() => handlePageChange(pageNum)}
-                            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors min-w-[2.5rem] ${
                               currentPage === pageNum
                                 ? 'bg-emerald-600 text-white'
                                 : 'text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-slate-700'
@@ -647,16 +651,16 @@ export default function LaporanPage() {
                         );
                       })}
                     </div>
-
-                    {/* Next Button */}
-                    <button
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      Selanjutnya
-                    </button>
                   </div>
+
+                  {/* Next Button */}
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="w-full xs:w-auto px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Selanjutnya
+                  </button>
                 </div>
               </div>
             )}
@@ -710,7 +714,7 @@ export default function LaporanPage() {
                                index === 1 ? <Medal className="h-7 w-7" /> :
                                <Award className="h-7 w-7" />}
                             </div>
-                            <div className="flex-1">
+                            <div>
                               <h3 className="font-semibold text-gray-900 dark:text-gray-100">{penyedia.namaPerusahaan}</h3>
                               <Badge variant="secondary" className="mt-1">{penyedia.jenisUsaha}</Badge>
                             </div>
