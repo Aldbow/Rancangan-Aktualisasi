@@ -28,24 +28,23 @@ export function ThemeProvider({
   storageKey = 'kemnaker-theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = React.useState<Theme>(defaultTheme)
+  const [theme, setTheme] = React.useState<Theme>(() => {
+    // Initialize with the theme that was set by the theme script
+    if (typeof window !== 'undefined') {
+      try {
+        const storedTheme = localStorage.getItem(storageKey) as Theme
+        return storedTheme || defaultTheme
+      } catch (e) {
+        return defaultTheme
+      }
+    }
+    return defaultTheme
+  })
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
     setMounted(true)
-    
-    // Only read from localStorage after mounting
-    if (typeof window !== 'undefined') {
-      try {
-        const storedTheme = localStorage.getItem(storageKey) as Theme
-        if (storedTheme) {
-          setTheme(storedTheme)
-        }
-      } catch (e) {
-        // Ignore localStorage errors
-      }
-    }
-  }, [storageKey])
+  }, [])
 
   React.useEffect(() => {
     if (!mounted) return
@@ -57,16 +56,21 @@ export function ThemeProvider({
       appliedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     }
 
-    // Clean approach - only modify classes after hydration
+    // Apply theme classes and data attribute
     root.classList.remove('light', 'dark')
     root.classList.add(appliedTheme)
+    root.setAttribute('data-theme', appliedTheme)
   }, [theme, mounted])
 
   const value = React.useMemo(() => ({
     theme,
     setTheme: (newTheme: Theme) => {
       if (typeof window !== 'undefined') {
-        localStorage.setItem(storageKey, newTheme)
+        try {
+          localStorage.setItem(storageKey, newTheme)
+        } catch (e) {
+          // Ignore localStorage errors
+        }
       }
       setTheme(newTheme)
     },

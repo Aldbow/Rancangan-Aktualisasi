@@ -62,7 +62,7 @@ export function FeaturesSection() {
               
               return (
                 <motion.div
-                  key={index}
+                  key={feature.title}
                   className="text-center group"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -70,9 +70,6 @@ export function FeaturesSection() {
                   whileHover={{ 
                     y: -15,
                     transition: { duration: 0.3, type: "spring", stiffness: 300 }
-                  }}
-                  transition={{ 
-                    y: { duration: 0.2, type: "spring", stiffness: 300 }
                   }}
                 >
                   <div className="relative h-full">

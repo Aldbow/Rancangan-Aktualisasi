@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Building2, ArrowRight, ShieldCheck, TrendingUp, Award, Star, Zap, Globe } from "lucide-react";
 import { FaArrowRight } from "react-icons/fa";
+import Link from "next/link";
 
 export function HeroSection() {
   return (
@@ -140,47 +141,51 @@ export function HeroSection() {
               transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
-              <motion.button
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-3 group text-sm sm:text-base"
-              >
-                <span>Mulai Penilaian</span>
-                <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ 
-                    duration: 1.5, 
-                    repeat: Infinity,
-                    repeatType: "reverse"
+              <Link href="/penilaian" passHref>
+                <motion.button
+                  whileHover={{ 
+                    scale: 1.05,
+                    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
                   }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-3 group text-sm sm:text-base"
                 >
-                  <FaArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
-                </motion.div>
-              </motion.button>
-              <motion.button
-                whileHover={{ 
-                  scale: 1.05,
-                  backgroundColor: "rgba(255, 255, 255, 0.15)",
-                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 sm:px-8 sm:py-4 bg-transparent border-2 border-white/30 text-white font-bold rounded-2xl hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3 group text-sm sm:text-base"
-              >
-                <span>Lihat Laporan</span>
-                <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ 
-                    duration: 1.5, 
-                    repeat: Infinity,
-                    repeatType: "reverse"
+                  <span>Mulai Penilaian</span>
+                  <motion.div
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                  >
+                    <FaArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
+                  </motion.div>
+                </motion.button>
+              </Link>
+              <Link href="/laporan" passHref>
+                <motion.button
+                  whileHover={{ 
+                    scale: 1.05,
+                    backgroundColor: "rgba(255, 255, 255, 0.15)",
+                    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
                   }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3 sm:px-8 sm:py-4 bg-transparent border-2 border-white/30 text-white font-bold rounded-2xl hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3 group text-sm sm:text-base"
                 >
-                  <ArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
-                </motion.div>
-              </motion.button>
+                  <span>Lihat Laporan</span>
+                  <motion.div
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                  >
+                    <ArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
+                  </motion.div>
+                </motion.button>
+              </Link>
             </motion.div>
           </motion.div>
           

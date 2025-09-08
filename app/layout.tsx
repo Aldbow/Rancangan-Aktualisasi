@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="id" className="light" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>
@@ -94,7 +94,7 @@ export default function RootLayout({
                   <span className="text-slate-800 dark:text-white font-semibold">UKPBJ Kemnaker</span>
                 </div>
                 <p className="text-slate-600 dark:text-slate-400 text-sm">
-                  © 2025 Sistem Penilaian Penyedia UKPBJ Kemnaker.
+                  2025 Sistem Penilaian Penyedia UKPBJ Kemnaker.
                 </p>
               </div>
             </div>
