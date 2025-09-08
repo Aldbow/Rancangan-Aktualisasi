@@ -36,6 +36,7 @@ export default function LaporanPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState('semua')
+  const [sortOption, setSortOption] = useState('a-z')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
   const [screenSize, setScreenSize] = useState<'sm' | 'md' | 'lg'>('lg')
@@ -128,6 +129,14 @@ export default function LaporanPage() {
     if (filterStatus === 'poor') return penyedia.rataRataSkor === 0
     
     return true
+  }).sort((a, b) => {
+    // Apply sorting based on sort option
+    if (sortOption === 'a-z') {
+      return a.namaPerusahaan.localeCompare(b.namaPerusahaan)
+    } else if (sortOption === 'z-a') {
+      return b.namaPerusahaan.localeCompare(a.namaPerusahaan)
+    }
+    return 0
   })
 
   // Pagination calculations
@@ -137,10 +146,10 @@ export default function LaporanPage() {
   const endIndex = startIndex + itemsPerPage
   const paginatedData = filteredData.slice(startIndex, endIndex)
 
-  // Reset to first page when search changes
+  // Reset to first page when search, filter, or sort changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, filterStatus])
+  }, [searchQuery, filterStatus, sortOption])
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -491,17 +500,28 @@ export default function LaporanPage() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row justify-between gap-3">
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-slate-700 dark:text-white text-base"
-                  >
-                    <option value="all">Semua Status</option>
-                    <option value="excellent">Sangat Baik (3.0)</option>
-                    <option value="good">Baik (≥2.0)</option>
-                    <option value="average">Cukup (≥1.0)</option>
-                    <option value="poor">Buruk (0)</option>
-                  </select>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-slate-700 dark:text-white text-base"
+                    >
+                      <option value="all">Semua Status</option>
+                      <option value="excellent">Sangat Baik (3.0)</option>
+                      <option value="good">Baik (≥2.0)</option>
+                      <option value="average">Cukup (≥1.0)</option>
+                      <option value="poor">Buruk (0)</option>
+                    </select>
+
+                    <select
+                      value={sortOption}
+                      onChange={(e) => setSortOption(e.target.value)}
+                      className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-slate-700 dark:text-white text-base"
+                    >
+                      <option value="a-z">A-Z</option>
+                      <option value="z-a">Z-A</option>
+                    </select>
+                  </div>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
