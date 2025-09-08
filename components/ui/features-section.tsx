@@ -63,7 +63,7 @@ export function FeaturesSection() {
               return (
                 <motion.div
                   key={feature.title}
-                  className="text-center group"
+                  className="text-center group cursor-pointer"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 * (index + 3), duration: 0.6 }}
@@ -74,18 +74,18 @@ export function FeaturesSection() {
                 >
                   <div className="relative h-full">
                     <motion.div 
-                      className={`p-6 lg:p-8 ${feature.bgColor} rounded-3xl w-full mx-auto mb-6 lg:mb-8 shadow-lg group-hover:shadow-2xl transition-all duration-500 relative overflow-hidden`}
+                      className={`p-6 lg:p-8 ${feature.bgColor} rounded-3xl w-full mx-auto mb-6 lg:mb-8 shadow-lg group-hover:shadow-2xl transition-all duration-500 relative overflow-hidden z-10`}
                       whileHover={{
                         scale: 1.05,
                         transition: { duration: 0.3 }
                       }}
                     >
                       {/* Background glow effect */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 rounded-3xl blur-2xl transition-opacity duration-500`}></div>
+                      <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-20 rounded-3xl transition-opacity duration-500 z-0`}></div>
                       
                       {/* Icon container with enhanced animation */}
                       <motion.div 
-                        className={`p-5 lg:p-6 bg-gradient-to-br ${feature.color} rounded-2xl w-fit mx-auto mb-6 shadow-lg group-hover:shadow-2xl transition-all duration-300 relative z-10`}
+                        className={`p-5 lg:p-6 bg-gradient-to-br ${feature.color} rounded-2xl w-fit mx-auto mb-6 shadow-lg group-hover:shadow-2xl transition-all duration-300 relative z-20`}
                         whileHover={{ 
                           scale: 1.2,
                           rotate: [0, 10, -10, 0],
@@ -96,21 +96,21 @@ export function FeaturesSection() {
                       </motion.div>
                       
                       {/* Decorative elements */}
-                      <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                      <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-gradient-to-br from-white/20 to-transparent rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
+                      <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-gradient-to-br from-white/30 to-transparent rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
                     </motion.div>
                     
                     <motion.h3 
-                      className="text-xl lg:text-2xl font-bold text-slate-800 dark:text-white mb-4 lg:mb-5"
+                      className="text-xl lg:text-2xl font-bold text-slate-800 dark:text-white mb-4 lg:mb-5 relative z-20"
                       whileHover={{ 
                         scale: 1.05,
-                        color: feature.color.includes("blue") ? "#3b82f6" : feature.color.includes("emerald") ? "#10b981" : "#8b5cf6"
+                        transition: { duration: 0.2 }
                       }}
                     >
                       {feature.title}
                     </motion.h3>
                     
-                    <p className="text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed px-2">
+                    <p className="text-base lg:text-lg text-slate-600 dark:text-slate-300 leading-relaxed px-2 relative z-20">
                       {feature.description}
                     </p>
                   </div>

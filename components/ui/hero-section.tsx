@@ -141,7 +141,7 @@ export function HeroSection() {
               transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
-              <Link href="/penilaian" passHref>
+              <Link href="/penilaian">
                 <motion.button
                   whileHover={{ 
                     scale: 1.05,
@@ -163,7 +163,7 @@ export function HeroSection() {
                   </motion.div>
                 </motion.button>
               </Link>
-              <Link href="/laporan" passHref>
+              <Link href="/laporan">
                 <motion.button
                   whileHover={{ 
                     scale: 1.05,

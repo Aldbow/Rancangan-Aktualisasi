@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 interface CacheEntry<T> {
   data: T
@@ -60,6 +60,16 @@ export function useApiCache<T>(
   const [error, setError] = useState<Error | null>(null)
 
   const { expiry, revalidateOnFocus = true, revalidateInterval } = options
+  
+  // Use refs to store the latest values without causing re-renders
+  const fetcherRef = useRef(fetcher)
+  const optionsRef = useRef(options)
+  
+  // Update refs when dependencies change
+  useEffect(() => {
+    fetcherRef.current = fetcher
+    optionsRef.current = options
+  }, [fetcher, options])
 
   const fetchData = useCallback(async (forceRefresh = false) => {
     try {
@@ -76,8 +86,9 @@ export function useApiCache<T>(
         }
       }
 
-      // Fetch fresh data
-      const freshData = await fetcher()
+      // Fetch fresh data using the ref to avoid dependency issues
+      const freshData = await fetcherRef.current()
+      const { expiry } = optionsRef.current
       apiCache.set(key, freshData, expiry)
       setData(freshData)
       return freshData
@@ -88,12 +99,13 @@ export function useApiCache<T>(
     } finally {
       setLoading(false)
     }
-  }, [key, fetcher, expiry])
+  }, [key])
 
   const mutate = useCallback((newData: T) => {
+    const { expiry } = optionsRef.current
     apiCache.set(key, newData, expiry)
     setData(newData)
-  }, [key, expiry])
+  }, [key])
 
   const invalidate = useCallback(() => {
     apiCache.invalidate(key)
@@ -141,11 +153,11 @@ export function useApiCache<T>(
 export function usePenyediaData() {
   return useApiCache(
     'penyedia',
-    async () => {
+    useCallback(async () => {
       const response = await fetch('/api/penyedia')
       if (!response.ok) throw new Error('Failed to fetch penyedia')
       return response.json()
-    },
+    }, []),
     { expiry: 10 * 60 * 1000 } // 10 minutes cache
   )
 }
@@ -153,11 +165,11 @@ export function usePenyediaData() {
 export function usePenilaianData() {
   return useApiCache(
     'penilaian',
-    async () => {
+    useCallback(async () => {
       const response = await fetch('/api/penilaian')
       if (!response.ok) throw new Error('Failed to fetch penilaian')
       return response.json()
-    },
+    }, []),
     { expiry: 5 * 60 * 1000 } // 5 minutes cache
   )
 }
@@ -165,11 +177,11 @@ export function usePenilaianData() {
 export function usePPKData() {
   return useApiCache(
     'ppk',
-    async () => {
+    useCallback(async () => {
       const response = await fetch('/api/ppk')
       if (!response.ok) throw new Error('Failed to fetch PPK')
       return response.json()
-    },
+    }, []),
     { expiry: 10 * 60 * 1000 } // 10 minutes cache
   )
 }
@@ -177,7 +189,7 @@ export function usePPKData() {
 export function useDashboardStats() {
   return useApiCache(
     'dashboard-stats',
-    async () => {
+    useCallback(async () => {
       const [penyediaResponse, penilaianResponse, ppkResponse] = await Promise.all([
         fetch('/api/penyedia'),
         fetch('/api/penilaian'),
@@ -195,7 +207,7 @@ export function useDashboardStats() {
       ])
 
       return { penyedia, penilaian, ppk }
-    },
+    }, []),
     { expiry: 3 * 60 * 1000 } // 3 minutes cache for dashboard
   )
 }

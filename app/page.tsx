@@ -57,11 +57,16 @@ export default function HomePage() {
 
   // Optimized search with caching
   const searchPenyedia = useCallback(async (query: string) => {
-    const response = await fetch(
-      `/api/penyedia/search?q=${encodeURIComponent(query)}`
-    );
-    if (!response.ok) throw new Error("Search failed");
-    return response.json();
+    try {
+      const response = await fetch(
+        `/api/penyedia/search?q=${encodeURIComponent(query)}`
+      );
+      if (!response.ok) throw new Error("Search failed");
+      return response.json();
+    } catch (error) {
+      console.error("Search error:", error);
+      throw error;
+    }
   }, []);
 
   const {
@@ -73,9 +78,11 @@ export default function HomePage() {
     debounceDelay: 250, // Faster response
   });
 
-  // Handle search query changes
+  // Handle search query changes with useEffect - proper way to handle side effects
   useEffect(() => {
-    search(searchQuery);
+    if (searchQuery.trim()) {
+      search(searchQuery);
+    }
   }, [searchQuery, search]);
 
   const { stats, topPenyedia } = useMemo(() => {
@@ -404,9 +411,9 @@ export default function HomePage() {
                               Tanggal Registrasi
                             </p>
                             <p className="font-medium text-slate-800 dark:text-slate-100">
-                              {new Date(
-                                selectedPenyedia.tanggalRegistrasi
-                              ).toLocaleDateString("id-ID")}
+                              {typeof window !== 'undefined' 
+                                ? new Date(selectedPenyedia.tanggalRegistrasi).toLocaleDateString("id-ID")
+                                : 'Memuat...'}
                             </p>
                           </div>
                         </div>
@@ -484,9 +491,9 @@ export default function HomePage() {
                                   <Calendar className="h-4 w-4 text-slate-500" aria-hidden="true" />
                                 </div>
                                 <span className="text-sm text-slate-600 dark:text-slate-300">
-                                  {new Date(
-                                    penilaian.tanggalPenilaian
-                                  ).toLocaleDateString("id-ID")}
+                                  {typeof window !== 'undefined'
+                                    ? new Date(penilaian.tanggalPenilaian).toLocaleDateString("id-ID")
+                                    : 'Memuat...'}
                                 </span>
                               </div>
                             </div>

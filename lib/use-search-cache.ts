@@ -25,6 +25,12 @@ export function useSearchCache(
   const cacheRef = useRef<SearchCache>({});
   const debounceRef = useRef<NodeJS.Timeout>();
   const abortControllerRef = useRef<AbortController>();
+  const searchFunctionRef = useRef(searchFunction);
+
+  // Update search function ref when it changes
+  useEffect(() => {
+    searchFunctionRef.current = searchFunction;
+  }, [searchFunction]);
 
   const search = useCallback(async (query: string) => {
     // Clear previous timeout
@@ -61,7 +67,7 @@ export function useSearchCache(
 
       try {
         abortControllerRef.current = new AbortController();
-        const data = await searchFunction(query);
+        const data = await searchFunctionRef.current(query);
         
         // Cache the results
         cacheRef.current[cacheKey] = {
@@ -79,7 +85,7 @@ export function useSearchCache(
         setIsLoading(false);
       }
     }, debounceDelay);
-  }, [searchFunction, cacheTimeout, debounceDelay]);
+  }, [cacheTimeout, debounceDelay]);
 
   const clearCache = useCallback(() => {
     cacheRef.current = {};
