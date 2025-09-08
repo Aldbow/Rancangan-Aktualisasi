@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BarChart3, Building2, Users, Star, TrendingUp, Download, Award, Trophy, Medal, ChevronDown, FileText, FileSpreadsheet, Search, Filter } from 'lucide-react'
+import { BarChart3, Building2, Users, Star, TrendingUp, Download, Award, Trophy, Medal, ChevronDown, FileText, FileSpreadsheet, Search, Filter, MapPin, Phone, Calendar, User, X } from 'lucide-react'
 import { StarRating } from '@/components/ui/star-rating'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +25,10 @@ interface PenyediaWithRating extends Penyedia {
   penilaianAkhir?: string
 }
 
+interface PenyediaWithDetails extends PenyediaWithRating {
+  penilaian: Penilaian[]
+}
+
 export default function LaporanPage() {
   const [penyediaData, setPenyediaData] = useState<PenyediaWithRating[]>([])
   const [penilaianData, setPenilaianData] = useState<Penilaian[]>([])
@@ -35,6 +39,8 @@ export default function LaporanPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
   const [screenSize, setScreenSize] = useState<'sm' | 'md' | 'lg'>('lg')
+  const [selectedPenyedia, setSelectedPenyedia] = useState<PenyediaWithDetails | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Fetch data
   useEffect(() => {
@@ -161,7 +167,7 @@ export default function LaporanPage() {
     if (score === 3) return 5 // Sangat Baik = 5 stars
     return 1 // fallback
   }
-  
+
   // Calculate star distribution (1-5 stars)
   const calculateStarDistribution = () => {
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
@@ -200,6 +206,15 @@ export default function LaporanPage() {
   // Get final evaluation text from penilaian data
   const getFinalEvaluationText = (penilaianAkhir: string) => {
     return penilaianAkhir || 'Belum Dinilai'
+  }
+
+  // Get final evaluation text for ratings (1-3 scale)
+  const getRatingEvaluationText = (rating: number) => {
+    if (rating === 3) return 'Sangat Baik'
+    if (rating >= 2 && rating < 3) return 'Baik'
+    if (rating >= 1 && rating < 2) return 'Cukup'
+    if (rating === 0) return 'Buruk'
+    return 'Cukup' // fallback
   }
 
 
@@ -542,7 +557,33 @@ export default function LaporanPage() {
                   >
                     <Card className="hover:shadow-2xl hover:shadow-slate-500/20 transition-all duration-500 hover:scale-[1.01] hover:-translate-y-1 bg-gradient-to-r from-white to-gray-50 dark:from-slate-800 dark:to-slate-700 group rounded-2xl border">
                       <CardContent className="p-5">
-                        <div className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:items-center lg:justify-between">
+                        <div 
+                          className="flex flex-col space-y-4 lg:space-y-0 lg:flex-row lg:items-center lg:justify-between cursor-pointer"
+                          onClick={async () => {
+                            // Fetch detailed penilaian data for this provider
+                            try {
+                              const response = await fetch(`/api/penyedia/${item.id}/penilaian`)
+                              if (response.ok) {
+                                const penilaian = await response.json()
+                                const penyediaWithDetails: PenyediaWithDetails = {
+                                  ...item,
+                                  penilaian
+                                }
+                                setSelectedPenyedia(penyediaWithDetails)
+                                setIsModalOpen(true)
+                              }
+                            } catch (error) {
+                              console.error('Error fetching penilaian data:', error)
+                              // Still show the modal with available data
+                              const penyediaWithDetails: PenyediaWithDetails = {
+                                ...item,
+                                penilaian: []
+                              }
+                              setSelectedPenyedia(penyediaWithDetails)
+                              setIsModalOpen(true)
+                            }
+                          }}
+                        >
                           <div className="flex-1">
                             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mb-4">
                               <motion.div 
@@ -771,6 +812,266 @@ export default function LaporanPage() {
           </Card>
         </motion.div>
       )}
+
+      {/* Provider Detail Modal */}
+      <AnimatePresence>
+        {isModalOpen && selectedPenyedia && (
+          <motion.div 
+            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsModalOpen(false)}
+          >
+            <motion.div 
+              className="bg-white dark:bg-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-6">
+                  <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                    Detail Penyedia
+                  </h2>
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+                    aria-label="Tutup detail penyedia"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Provider Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
+                      Informasi Penyedia
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-start">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                          <Building2 className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Nama Perusahaan
+                          </p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">
+                            {selectedPenyedia.namaPerusahaan}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                          <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Alamat
+                          </p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">
+                            {selectedPenyedia.alamat || "-"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                          <Phone className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Kontak
+                          </p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">
+                            {selectedPenyedia.kontak || "-"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
+                      Informasi Tambahan
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex items-start">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                          <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            NPWP
+                          </p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">
+                            {selectedPenyedia.npwp}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                          <Award className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Jenis Usaha
+                          </p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">
+                            {selectedPenyedia.jenisUsaha}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
+                          <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Tanggal Registrasi
+                          </p>
+                          <p className="font-medium text-slate-800 dark:text-slate-100">
+                            {new Date(
+                              selectedPenyedia.tanggalRegistrasi
+                            ).toLocaleDateString("id-ID")}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ratings Summary */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-6 mb-8">
+                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
+                    Ringkasan Penilaian
+                  </h3>
+                  <div className="flex flex-col sm:flex-row items-center justify-between">
+                    <div className="flex items-center mb-4 sm:mb-0">
+                      <StarRating
+                        rating={mapScoreToStars(
+                          selectedPenyedia.rataRataSkor
+                        )}
+                        size="lg"
+                        showValue={false}
+                        className="mr-4"
+                      />
+                      <div>
+                        <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                          {selectedPenyedia.rataRataSkor.toFixed(1)}
+                        </div>
+                        <div
+                          className={`text-sm px-3 py-1 rounded-full font-medium inline-block ${getRatingColor(
+                            selectedPenyedia.rataRataSkor
+                          )}`}
+                        >
+                          {getRatingEvaluationText(
+                            selectedPenyedia.rataRataSkor
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-center sm:text-right">
+                      <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+                        {selectedPenyedia.totalPenilaian}
+                      </div>
+                      <div className="text-sm text-slate-600 dark:text-slate-300">
+                        Total Penilaian
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rating History */}
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
+                    Riwayat Penilaian
+                  </h3>
+                  {selectedPenyedia.penilaian.length > 0 ? (
+                    <div className="space-y-4">
+                      {selectedPenyedia.penilaian.map((penilaian, index) => (
+                        <motion.div
+                          key={penilaian.id}
+                          className="border border-gray-200 dark:border-gray-700 rounded-2xl p-5"
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.1 }}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
+                            <div className="flex items-center mb-2 sm:mb-0">
+                              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-2">
+                                <User className="h-4 w-4 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                              </div>
+                              <span className="font-medium text-slate-800 dark:text-slate-100">
+                                {penilaian.namaPPK}
+                              </span>
+                            </div>
+                            <div className="flex items-center">
+                              <div className="p-1 bg-slate-100 dark:bg-slate-700 rounded mr-1">
+                                <Calendar className="h-4 w-4 text-slate-500" aria-hidden="true" />
+                              </div>
+                              <span className="text-sm text-slate-600 dark:text-slate-300">
+                                {new Date(
+                                  penilaian.tanggalPenilaian
+                                ).toLocaleDateString("id-ID")}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                            <div className="mb-4 sm:mb-0">
+                              <StarRating
+                                rating={mapScoreToStars(penilaian.skorTotal)}
+                                size="md"
+                                showValue={false}
+                                className="mb-2"
+                              />
+                              <div
+                                className={`text-xs px-3 py-1 rounded-full font-medium inline-block ${getRatingColor(
+                                  penilaian.skorTotal
+                                )}`}
+                              >
+                                {penilaian.penilaianAkhir ||
+                                  getRatingEvaluationText(penilaian.skorTotal)}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+                                {penilaian.skorTotal.toFixed(1)}/3
+                              </div>
+                              <div className="text-sm text-slate-600 dark:text-slate-300">
+                                Skor Total
+                              </div>
+                            </div>
+                          </div>
+
+                          {penilaian.keterangan && (
+                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                              <p className="text-sm text-slate-600 dark:text-slate-300">
+                                {penilaian.keterangan}
+                              </p>
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-slate-600 dark:text-slate-300 text-lg">
+                        Belum ada penilaian untuk penyedia ini
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
