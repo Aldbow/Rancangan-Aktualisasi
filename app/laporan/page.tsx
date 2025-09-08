@@ -37,6 +37,8 @@ export default function LaporanPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState('semua')
   const [sortOption, setSortOption] = useState('a-z')
+  const [starFilter, setStarFilter] = useState('all')
+  const [starSort, setStarSort] = useState('none')
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
   const [screenSize, setScreenSize] = useState<'sm' | 'md' | 'lg'>('lg')
@@ -114,42 +116,13 @@ export default function LaporanPage() {
     }
   }
 
-  // Filter data based on search and status
-  const filteredData = penyediaData.filter(penyedia => {
-    const matchesSearch = penyedia.namaPerusahaan.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      penyedia.npwp.includes(searchQuery)
-    
-    if (!matchesSearch) return false
-    
-    // Apply status filter based on LKPP scale (1-3)
-    if (filterStatus === 'all') return true
-    if (filterStatus === 'excellent') return penyedia.rataRataSkor === 3
-    if (filterStatus === 'good') return penyedia.rataRataSkor >= 2 && penyedia.rataRataSkor < 3
-    if (filterStatus === 'average') return penyedia.rataRataSkor >= 1 && penyedia.rataRataSkor < 2
-    if (filterStatus === 'poor') return penyedia.rataRataSkor === 0
-    
-    return true
-  }).sort((a, b) => {
-    // Apply sorting based on sort option
-    if (sortOption === 'a-z') {
-      return a.namaPerusahaan.localeCompare(b.namaPerusahaan)
-    } else if (sortOption === 'z-a') {
-      return b.namaPerusahaan.localeCompare(a.namaPerusahaan)
-    }
-    return 0
-  })
+  // Filter data based on search, status, and star rating
+  // (Moved after mapScoreToStars function definition)
 
-  // Pagination calculations
-  const totalItems = filteredData.length
-  const totalPages = Math.ceil(totalItems / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const paginatedData = filteredData.slice(startIndex, endIndex)
-
-  // Reset to first page when search, filter, or sort changes
+  // Reset to first page when search, filter, sort, star filter, or star sort changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, filterStatus, sortOption])
+  }, [searchQuery, filterStatus, sortOption, starFilter, starSort])
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -176,6 +149,66 @@ export default function LaporanPage() {
     if (score === 3) return 5 // Sangat Baik = 5 stars
     return 1 // fallback
   }
+
+  // Filter data based on search, status, and star rating
+  const filteredData = penyediaData.filter(penyedia => {
+    const matchesSearch = penyedia.namaPerusahaan.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      penyedia.npwp.includes(searchQuery)
+    
+    if (!matchesSearch) return false
+    
+    // Apply status filter based on LKPP scale (1-3)
+    if (filterStatus === 'all') return true
+    if (filterStatus === 'excellent') return penyedia.rataRataSkor === 3
+    if (filterStatus === 'good') return penyedia.rataRataSkor >= 2 && penyedia.rataRataSkor < 3
+    if (filterStatus === 'average') return penyedia.rataRataSkor >= 1 && penyedia.rataRataSkor < 2
+    if (filterStatus === 'poor') return penyedia.rataRataSkor === 0
+    
+    // Apply star filter
+    if (starFilter === 'rated') return penyedia.totalPenilaian > 0
+    if (starFilter === 'unrated') return penyedia.totalPenilaian === 0
+    
+    return true
+  }).sort((a, b) => {
+    // Apply star rating sorting first
+    if (starSort === 'high-low') {
+      // Sort by mapped star rating (highest first), then by total evaluations
+      const aStars = mapScoreToStars(a.rataRataSkor);
+      const bStars = mapScoreToStars(b.rataRataSkor);
+      
+      if (bStars !== aStars) {
+        return bStars - aStars;
+      }
+      // If stars are equal, sort by number of evaluations (more evaluations first)
+      return b.totalPenilaian - a.totalPenilaian;
+    } else if (starSort === 'low-high') {
+      // Sort by mapped star rating (lowest first), then by total evaluations
+      const aStars = mapScoreToStars(a.rataRataSkor);
+      const bStars = mapScoreToStars(b.rataRataSkor);
+      
+      if (aStars !== bStars) {
+        return aStars - bStars;
+      }
+      // If stars are equal, sort by number of evaluations (more evaluations first)
+      return b.totalPenilaian - a.totalPenilaian;
+    }
+    
+    // Apply alphabetical sorting based on sort option
+    if (sortOption === 'a-z') {
+      return a.namaPerusahaan.localeCompare(b.namaPerusahaan)
+    } else if (sortOption === 'z-a') {
+      return b.namaPerusahaan.localeCompare(a.namaPerusahaan)
+    }
+    
+    return 0
+  })
+
+  // Pagination calculations
+  const totalItems = filteredData.length
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedData = filteredData.slice(startIndex, endIndex)
 
   // Calculate star distribution (1-5 stars)
   const calculateStarDistribution = () => {
@@ -520,6 +553,26 @@ export default function LaporanPage() {
                     >
                       <option value="a-z">A-Z</option>
                       <option value="z-a">Z-A</option>
+                    </select>
+
+                    <select
+                      value={starFilter}
+                      onChange={(e) => setStarFilter(e.target.value)}
+                      className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-slate-700 dark:text-white text-base"
+                    >
+                      <option value="all">Semua Penyedia</option>
+                      <option value="rated">Sudah Dinilai</option>
+                      <option value="unrated">Belum Dinilai</option>
+                    </select>
+
+                    <select
+                      value={starSort}
+                      onChange={(e) => setStarSort(e.target.value)}
+                      className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent dark:bg-slate-700 dark:text-white text-base"
+                    >
+                      <option value="none">Tanpa Sortir Bintang</option>
+                      <option value="high-low">Bintang Tinggi-Rendah</option>
+                      <option value="low-high">Bintang Rendah-Tinggi</option>
                     </select>
                   </div>
 
