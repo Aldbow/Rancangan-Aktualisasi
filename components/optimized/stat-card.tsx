@@ -27,11 +27,11 @@ const colorClasses = {
     glow: 'shadow-emerald-500/50'
   },
   indigo: {
-    border: 'border-l-indigo-600 dark:border-l-indigo-400',
-    bg: 'from-white to-indigo-50 dark:from-slate-800 dark:to-slate-700',
-    text: 'text-indigo-800 dark:text-indigo-300',
-    iconBg: 'from-indigo-500 to-indigo-600 dark:from-indigo-600 dark:to-indigo-700',
-    glow: 'shadow-indigo-500/50'
+    border: 'border-l-purple-600 dark:border-l-purple-400',
+    bg: 'from-white to-purple-100 dark:from-slate-800 dark:to-purple-900/30',
+    text: 'text-purple-800 dark:text-purple-300',
+    iconBg: 'from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700',
+    glow: 'shadow-purple-500/30'
   },
   amber: {
     border: 'border-l-amber-600 dark:border-l-amber-400',
@@ -44,14 +44,39 @@ const colorClasses = {
 
 export const StatCard = memo<StatCardProps>(({ title, value, icon: Icon, color, isLoading = false }) => {
   const classes = colorClasses[color]
-  const [displayValue, setDisplayValue] = useState<string | number>(value);
+  const [mounted, setMounted] = useState(false)
   
-  // Update display value when value changes
+  // Fix hydration mismatch
   useEffect(() => {
-    if (!isLoading) {
-      setDisplayValue(value);
-    }
-  }, [value, isLoading]);
+    setMounted(true)
+  }, [])
+
+  // Prevent hydration mismatch by not rendering animations until mounted
+  if (!mounted) {
+    return (
+      <Card className={`border-l-4 ${classes.border} bg-gradient-to-br ${classes.bg} rounded-2xl`}>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                {title}
+              </p>
+              {isLoading ? (
+                <div className="text-3xl font-bold animate-pulse bg-gray-200 dark:bg-gray-700 rounded h-8 w-16" />
+              ) : (
+                <div className={`text-3xl font-bold ${classes.text} min-h-[2rem] flex items-center`}>
+                  {value}
+                </div>
+              )}
+            </div>
+            <div className={`p-4 bg-gradient-to-br ${classes.iconBg} rounded-xl shadow-lg flex items-center justify-center`}>
+              <Icon className="h-6 w-6 text-white" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <motion.div
@@ -63,6 +88,7 @@ export const StatCard = memo<StatCardProps>(({ title, value, icon: Icon, color, 
         transition: { duration: 0.3, type: "spring", stiffness: 300 }
       }}
       className="group"
+      suppressHydrationWarning
     >
       <Card className={`border-l-4 ${classes.border} hover:shadow-2xl transition-all duration-500 bg-gradient-to-br ${classes.bg} group overflow-hidden relative rounded-2xl`}>
         {/* Enhanced animated background on hover */}
@@ -93,7 +119,7 @@ export const StatCard = memo<StatCardProps>(({ title, value, icon: Icon, color, 
                     visibility: 'visible'
                   }}
                 >
-                  {displayValue}
+                  {value}
                 </div>
               )}
             </div>

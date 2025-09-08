@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 interface CacheEntry<T> {
   data: T
@@ -59,6 +59,10 @@ export function useApiCache<T>(
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
 
+  // Use ref to store fetcher to prevent infinite loops
+  const fetcherRef = useRef(fetcher)
+  fetcherRef.current = fetcher
+
   const { expiry, revalidateOnFocus = true, revalidateInterval } = options
 
   const fetchData = useCallback(async (forceRefresh = false) => {
@@ -76,8 +80,8 @@ export function useApiCache<T>(
         }
       }
 
-      // Fetch fresh data
-      const freshData = await fetcher()
+      // Fetch fresh data using ref to avoid dependency issues
+      const freshData = await fetcherRef.current()
       apiCache.set(key, freshData, expiry)
       setData(freshData)
       return freshData
@@ -88,7 +92,7 @@ export function useApiCache<T>(
     } finally {
       setLoading(false)
     }
-  }, [key, fetcher, expiry])
+  }, [key, expiry, fetcherRef]) // Added fetcherRef to dependencies
 
   const mutate = useCallback((newData: T) => {
     apiCache.set(key, newData, expiry)

@@ -3,10 +3,59 @@
 import { motion } from "framer-motion";
 import { Building2, ArrowRight, ShieldCheck, TrendingUp, Award, Star, Zap, Globe } from "lucide-react";
 import { FaArrowRight } from "react-icons/fa";
+import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export function HeroSection() {
+  const [mounted, setMounted] = useState(false);
+
+  // Fix hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Render static version during hydration
+  if (!mounted) {
+    return (
+      <div className="relative rounded-3xl bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-6 md:p-10 lg:p-14 xl:p-20 shadow-2xl">
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-white/20">
+                <ShieldCheck className="h-4 w-4 text-blue-300" />
+                <span className="text-blue-100 text-sm font-medium">Sistem Terintegrasi UKPBJ Kemnaker</span>
+              </div>
+              
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold text-white mb-6 leading-tight md:leading-tight relative z-20 tracking-tight">
+                <span className="block mb-2">Penilaian Penyedia</span>
+                <span className="block bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-transparent">
+                  Barang/Jasa
+                </span>
+              </h1>
+
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-blue-100 max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-10 font-body">
+                Platform digital terintegrasi untuk PPK memberikan penilaian terhadap penyedia barang/jasa sesuai dengan standar dan kriteria yang ditetapkan LKPP
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Link href="/penilaian" className="px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-3 group text-sm sm:text-base">
+                  <span>Mulai Penilaian</span>
+                  <FaArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link href="/laporan" className="px-6 py-3 sm:px-8 sm:py-4 bg-transparent border-2 border-white/30 text-white font-bold rounded-2xl hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3 group text-sm sm:text-base">
+                  <span>Lihat Laporan</span>
+                  <ArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative rounded-3xl bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-6 md:p-10 lg:p-14 xl:p-20 shadow-2xl">
+    <div className="relative rounded-3xl bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-6 md:p-10 lg:p-14 xl:p-20 shadow-2xl" suppressHydrationWarning>
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden rounded-3xl">
         {/* Large gradient circle */}
@@ -140,47 +189,51 @@ export function HeroSection() {
               transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
-              <motion.button
-                whileHover={{ 
-                  scale: 1.05,
-                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-3 group text-sm sm:text-base"
-              >
-                <span>Mulai Penilaian</span>
+              <Link href="/penilaian">
                 <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ 
-                    duration: 1.5, 
-                    repeat: Infinity,
-                    repeatType: "reverse"
+                  whileHover={{ 
+                    scale: 1.05,
+                    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
                   }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3 sm:px-8 sm:py-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center justify-center gap-3 group text-sm sm:text-base cursor-pointer"
                 >
-                  <FaArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
+                  <span>Mulai Penilaian</span>
+                  <motion.div
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                  >
+                    <FaArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
+                  </motion.div>
                 </motion.div>
-              </motion.button>
-              <motion.button
-                whileHover={{ 
-                  scale: 1.05,
-                  backgroundColor: "rgba(255, 255, 255, 0.15)",
-                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="px-6 py-3 sm:px-8 sm:py-4 bg-transparent border-2 border-white/30 text-white font-bold rounded-2xl hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3 group text-sm sm:text-base"
-              >
-                <span>Lihat Laporan</span>
+              </Link>
+              <Link href="/laporan">
                 <motion.div
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ 
-                    duration: 1.5, 
-                    repeat: Infinity,
-                    repeatType: "reverse"
+                  whileHover={{ 
+                    scale: 1.05,
+                    backgroundColor: "rgba(255, 255, 255, 0.15)",
+                    boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1)"
                   }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-6 py-3 sm:px-8 sm:py-4 bg-transparent border-2 border-white/30 text-white font-bold rounded-2xl hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3 group text-sm sm:text-base cursor-pointer"
                 >
-                  <ArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
+                  <span>Lihat Laporan</span>
+                  <motion.div
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                  >
+                    <ArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
+                  </motion.div>
                 </motion.div>
-              </motion.button>
+              </Link>
             </motion.div>
           </motion.div>
           

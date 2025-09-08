@@ -54,14 +54,25 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPenyedia, setSelectedPenyedia] =
     useState<PenyediaWithRatings | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Fix hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Optimized search with caching
   const searchPenyedia = useCallback(async (query: string) => {
-    const response = await fetch(
-      `/api/penyedia/search?q=${encodeURIComponent(query)}`
-    );
-    if (!response.ok) throw new Error("Search failed");
-    return response.json();
+    try {
+      const response = await fetch(
+        `/api/penyedia/search?q=${encodeURIComponent(query)}`
+      );
+      if (!response.ok) throw new Error("Search failed");
+      return response.json();
+    } catch (error) {
+      console.error('Search error:', error);
+      return [];
+    }
   }, []);
 
   const {
@@ -70,13 +81,16 @@ export default function HomePage() {
     search,
   } = useSearchCache(searchPenyedia, {
     cacheTimeout: 5 * 60 * 1000, // 5 minutes
-    debounceDelay: 250, // Faster response
+    debounceDelay: 100, // Faster response
   });
 
-  // Handle search query changes
+  // Handle search query changes - only after mounted
   useEffect(() => {
-    search(searchQuery);
-  }, [searchQuery, search]);
+    if (!mounted) return;
+    if (searchQuery.trim()) {
+      search(searchQuery);
+    }
+  }, [searchQuery, search, mounted]);
 
   const { stats, topPenyedia } = useMemo(() => {
     if (!dashboardData) {
